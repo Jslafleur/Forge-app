@@ -1,0 +1,2068 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f4f1ee">
+<title>FORGE</title>
+<!-- System fonts - no network dependency -->
+<style>
+  /* Use system font stack - works offline, no CORS issues */
+</style>
+<style>
+:root {
+  --bg: #f2ede8;
+  --bg2: #ebe4dc;
+  --surface: #faf7f4;
+  --surface2: #f0e9e2;
+  --surface3: #e6ddd4;
+  --border: #d8cfc6;
+  --border2: #c8bfb6;
+  --accent: #b8735a;
+  --accent2: #cc8f72;
+  --accent-glow: rgba(184,115,90,0.15);
+  --accent-dim: rgba(184,115,90,0.08);
+  --blue: #5882b8;
+  --blue-dim: rgba(88,130,184,0.12);
+  --green: #5a9e72;
+  --green-dim: rgba(90,158,114,0.12);
+  --yellow: #b89850;
+  --red: #b85858;
+  --purple: #7d62a8;
+  --text: #2a231c;
+  --text2: #6e6058;
+  --text3: #a89890;
+  --r: 14px;
+  --rs: 9px;
+  --shadow: 0 1px 6px rgba(42,35,28,0.08);
+  --shadow-md: 0 3px 16px rgba(42,35,28,0.1);
+  --transition: 0.18s cubic-bezier(0.4,0,0.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;color:var(--text)}
+#app{position:fixed;inset:0;display:flex;flex-direction:column;z-index:1}
+.screen{display:none;flex-direction:column;height:100%;overflow:hidden}
+.screen.active{display:flex;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:88px}
+.scroll::-webkit-scrollbar{display:none}
+
+/* TYPOGRAPHY */
+.display{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;text-transform:uppercase;letter-spacing:1px}
+
+/* NAV */
+.bnav{display:flex;background:var(–surface);border-top:1px solid var(–border2);padding:10px 0 max(16px,env(safe-area-inset-bottom));flex-shrink:0;box-shadow:0 -2px 10px rgba(42,35,28,0.06)}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:2px 0;color:var(–text3);transition:color var(–transition)}
+.bnav-item.on{color:var(–accent)}
+.bnav-item svg{width:22px;height:22px;stroke-width:1.8}
+.bnav-label{font-size:10px;font-weight:600;letter-spacing:.5px}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:13px 22px;border-radius:var(–rs);border:none;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:700;font-size:15px;letter-spacing:1px;text-transform:uppercase;transition:all var(–transition)}
+.btn:active{transform:scale(.97)}
+.btn-accent{background:linear-gradient(135deg,var(–accent),var(–accent2));color:#fff;box-shadow:0 3px 16px var(–accent-glow)}
+.btn-ghost{background:var(–surface2);border:1px solid var(–border);color:var(–text2)}
+.btn-green{background:linear-gradient(135deg,var(–green),#3d8856);color:#fff;box-shadow:0 3px 14px rgba(90,158,114,0.25)}
+.btn-red{background:rgba(184,88,88,.1);border:1px solid rgba(184,88,88,.3);color:var(–red)}
+.btn-sm{padding:8px 14px;font-size:12px}
+.btn-full{width:100%}
+
+/* CARDS */
+.card{background:var(–surface);border:1px solid var(–border);border-radius:var(–r);overflow:hidden;box-shadow:var(–shadow)}
+
+/* INPUTS */
+.inp-wrap{display:flex;flex-direction:column;gap:5px}
+.inp-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(–text3)}
+.inp{background:var(–surface2);border:1px solid var(–border);border-radius:var(–rs);padding:11px 13px;font-size:15px;color:var(–text);font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;width:100%;outline:none;transition:border-color var(–transition)}
+.inp:focus{border-color:var(–accent)}
+.inp::placeholder{color:var(–text3)}
+textarea.inp{resize:none;min-height:70px}
+select.inp{appearance:none;-webkit-appearance:none;cursor:pointer}
+
+/* TAGS */
+.tag{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.tag-strength{background:rgba(184,115,90,.12);color:var(–accent);border:1px solid rgba(184,115,90,.25)}
+.tag-cardio{background:var(–blue-dim);color:var(–blue);border:1px solid rgba(88,130,184,.25)}
+.tag-hiit{background:rgba(184,152,80,.12);color:var(–yellow);border:1px solid rgba(184,152,80,.25)}
+.tag-crossfit{background:rgba(125,98,168,.12);color:var(–purple);border:1px solid rgba(125,98,168,.25)}
+.tag-rest{background:var(–green-dim);color:var(–green);border:1px solid rgba(90,158,114,.25)}
+
+/* SECTION HEADER */
+.sec-hdr{display:flex;justify-content:space-between;align-items:center;padding:0 16px;margin-bottom:8px}
+.sec-title{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:800;font-size:18px;letter-spacing:1px}
+.sec-action{font-size:12px;color:var(–accent);font-weight:600;cursor:pointer}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(42,35,28,.55);z-index:400;display:none;align-items:flex-end}
+.modal-bg.open{display:flex}
+.modal-sheet{background:var(–surface);border-radius:22px 22px 0 0;border:1px solid var(–border2);border-bottom:none;padding:24px 20px max(32px,env(safe-area-inset-bottom));width:100%;box-shadow:var(–shadow-md);max-height:92vh;overflow-y:auto;animation:slideUp .3s cubic-bezier(.34,1.56,.64,1)}
+.modal-sheet::-webkit-scrollbar{display:none}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:32px;height:3px;background:var(–border2);border-radius:2px;margin:0 auto 18px}
+.modal-title{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:26px;letter-spacing:1px;margin-bottom:4px}
+.modal-sub{font-size:13px;color:var(–text2);margin-bottom:18px;line-height:1.5}
+
+/* TOAST */
+.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%) translateY(-12px);background:var(–text);border-radius:20px;padding:9px 18px;font-size:13px;font-weight:600;color:var(–surface);opacity:0;transition:all .28s;z-index:999;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:44px 20px;color:var(–text3)}
+.empty-icon{font-size:44px;margin-bottom:10px}
+
+/* INPUT[NUMBER] */
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+
+/* ══════════════ USER SELECT ══════════════ */
+#s-users{background:linear-gradient(160deg,#ede6de,#e4dff0);justify-content:center}
+.forge-mark{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:68px;letter-spacing:6px;line-height:1;background:linear-gradient(135deg,var(–accent),var(–accent2),var(–yellow));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 24px rgba(184,115,90,.25))}
+.forge-tag{font-size:11px;letter-spacing:3px;color:var(–text3);text-transform:uppercase;margin-top:4px}
+.users-hero{padding:56px 28px 28px;text-align:center}
+.users-grid{padding:0 20px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.u-card{background:var(–surface);border:2px solid var(–border);border-radius:var(–r);padding:22px 14px;display:flex;flex-direction:column;align-items:center;gap:9px;cursor:pointer;transition:all var(–transition);box-shadow:var(–shadow)}
+.u-card:active{transform:scale(.96);border-color:var(–accent)}
+.u-avatar{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:24px;color:#fff}
+.u-name{font-weight:700;font-size:14px}
+.u-meta{font-size:11px;color:var(–text3)}
+.u-add{background:var(–surface);border:2px dashed var(–border2);border-radius:var(–r);padding:22px 14px;display:flex;flex-direction:column;align-items:center;gap:9px;cursor:pointer;color:var(–text3);transition:all var(–transition)}
+.u-add:active{border-color:var(–accent);color:var(–accent)}
+.users-foot{padding:20px}
+
+/* ══════════════ HOME ══════════════ */
+#s-home{background:var(–bg)}
+.home-top{padding:48px 18px 14px;display:flex;justify-content:space-between;align-items:flex-start;flex-shrink:0}
+.home-greeting{font-size:12px;color:var(–text3);letter-spacing:1px;text-transform:uppercase}
+.home-name{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:36px;letter-spacing:2px;line-height:1}
+.switch-btn{display:flex;align-items:center;gap:7px;background:var(–surface);border:1px solid var(–border);border-radius:20px;padding:7px 12px;cursor:pointer;box-shadow:var(–shadow)}
+.sw-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:11px;color:#fff}
+.sw-nm{font-size:11px;font-weight:600;color:var(–text2)}
+
+.prog-hero{margin:0 14px 14px;background:var(–surface);border:1px solid var(–border);border-radius:var(–r);overflow:hidden;box-shadow:var(–shadow)}
+.prog-bar{height:3px;background:linear-gradient(90deg,var(–accent),var(–accent2),transparent);opacity:.7}
+.prog-hero-body{padding:16px}
+.prog-hero-name{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:24px;letter-spacing:1px}
+.prog-hero-desc{font-size:12px;color:var(–text2);margin-top:3px;line-height:1.4}
+
+.week-strip{margin:0 14px 14px;display:flex;align-items:center;gap:8px}
+.week-pill{padding:5px 13px;background:var(–surface);border:1px solid var(–border);border-radius:20px;font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:700;font-size:15px;color:var(–accent);box-shadow:var(–shadow)}
+.phase-pill{font-size:11px;color:var(–text3);flex:1}
+.week-nav-btns{display:flex;gap:4px}
+.wk-btn{width:28px;height:28px;background:var(–surface);border:1px solid var(–border);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(–text2)}
+
+.day-list{padding:0 14px;display:flex;flex-direction:column;gap:7px}
+.day-card{background:var(–surface);border:1px solid var(–border);border-radius:var(–r);padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all var(–transition);box-shadow:var(–shadow)}
+.day-card:active{transform:scale(.98)}
+.day-card.done-card{border-color:rgba(90,158,114,.35)}
+.day-card.done-card::after{content:’’;position:absolute;inset:0;background:linear-gradient(135deg,rgba(90,158,114,.04),transparent);pointer-events:none;border-radius:var(–r)}
+.day-card{position:relative}
+.day-num-box{width:42px;height:42px;background:var(–surface3);border-radius:var(–rs);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(–border)}
+.day-num-txt{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:20px;line-height:1;color:var(–text3)}
+.done-card .day-num-txt{color:var(–green)}
+.day-info{flex:1;min-width:0}
+.day-title{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.day-sub{font-size:11px;color:var(–text2);margin-top:2px}
+.day-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
+.done-ring{width:26px;height:26px;border-radius:50%;border:2px solid var(–border);display:flex;align-items:center;justify-content:center;font-size:12px;transition:all var(–transition)}
+.done-ring.done{background:var(–green);border-color:var(–green);color:#fff}
+
+.no-prog-cta{margin:14px;background:var(–surface);border:2px dashed var(–border2);border-radius:var(–r);padding:28px;text-align:center;box-shadow:var(–shadow)}
+.cta-icon{font-size:44px;margin-bottom:10px}
+.cta-title{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:800;font-size:22px;letter-spacing:1px;margin-bottom:5px}
+.cta-desc{font-size:13px;color:var(–text2);margin-bottom:18px;line-height:1.5}
+
+/* ══════════════ WORKOUT SCREEN ══════════════ */
+#s-workout{background:var(–bg)}
+.wk-nav{padding:48px 14px 12px;display:flex;align-items:center;gap:10px;flex-shrink:0;border-bottom:1px solid var(–border2);background:var(–surface)}
+.back-btn{width:38px;height:38px;background:var(–surface2);border:1px solid var(–border);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;color:var(–text2);flex-shrink:0}
+.wk-nav-info{flex:1;min-width:0}
+.wk-nav-day{font-size:11px;color:var(–text3);text-transform:uppercase;letter-spacing:1.5px}
+.wk-nav-title{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:24px;letter-spacing:1px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wk-timer-pill{display:flex;align-items:center;gap:5px;background:var(–surface2);border:1px solid var(–border);border-radius:20px;padding:6px 10px;cursor:pointer;flex-shrink:0}
+.wk-timer-txt{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:800;font-size:16px;color:var(–accent);letter-spacing:1px;min-width:44px;text-align:center}
+.wk-timer-dot{width:7px;height:7px;border-radius:50%;background:var(–text3)}
+.wk-timer-dot.running{background:var(–green);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* SUPERSET BLOCK */
+.ss-block{padding:0 14px;margin-bottom:14px}
+.ss-tag{font-size:10px;font-weight:700;color:var(–text3);text-transform:uppercase;letter-spacing:2px;margin-bottom:7px;display:flex;align-items:center;gap:7px}
+.ss-line{flex:1;height:1px;background:var(–border)}
+
+/* EXERCISE CARD */
+.ex-card{background:var(–surface);border:1px solid var(–border);border-radius:var(–r);overflow:hidden;margin-bottom:6px;box-shadow:var(–shadow);transition:border-color var(–transition)}
+.ex-card.ex-done{border-color:rgba(90,158,114,.4)}
+.ex-hdr{padding:13px 14px;display:flex;align-items:center;gap:10px;cursor:pointer}
+.ex-chip{width:34px;height:34px;background:var(–surface3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:13px;color:var(–accent);flex-shrink:0}
+.ex-det{flex:1;min-width:0}
+.ex-name{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ex-rx{font-size:11px;color:var(–text2);margin-top:2px}
+.ex-acts{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.demo-btn{padding:5px 9px;background:var(–blue-dim);border:1px solid rgba(88,130,184,.3);border-radius:6px;font-size:11px;font-weight:700;color:var(–blue);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:3px;white-space:nowrap}
+.ex-done-btn{width:28px;height:28px;background:var(–surface3);border:2px solid var(–border);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all var(–transition);font-size:11px}
+.ex-done-btn.done{background:var(–green);border-color:var(–green);color:#fff}
+
+.ex-body{display:none;padding:0 14px 12px}
+.ex-note{background:var(–surface3);border-radius:var(–rs);padding:9px 11px;font-size:12px;color:var(–text2);line-height:1.5;margin-bottom:10px}
+.ex-note::before{content:’💡 ’}
+.sets-hdr{display:grid;grid-template-columns:28px 1fr 1fr 76px;gap:6px;margin-bottom:5px}
+.sets-row{display:grid;grid-template-columns:28px 1fr 1fr 76px;gap:6px;margin-bottom:6px;align-items:start}
+.set-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(–text3);text-align:center;padding-top:12px}
+.set-n{font-size:13px;font-weight:700;color:var(–text3);text-align:center;padding-top:12px}
+.set-col{display:flex;flex-direction:column;gap:2px}
+.set-inp{background:var(–surface3);border:1px solid var(–border);border-radius:8px;padding:10px 7px;font-size:16px;font-weight:700;color:var(–text);text-align:center;font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;width:100%;outline:none;-webkit-appearance:none;transition:border-color var(–transition)}
+.set-inp:focus{border-color:var(–accent)}
+.set-inp.logged{border-color:rgba(90,158,114,.5);background:rgba(90,158,114,.05)}
+.set-prev{font-size:9px;text-align:center;color:var(–text3);min-height:12px}
+.set-prev.up{color:var(–green)}
+.timer-btn{background:var(–accent-dim);border:1px solid rgba(184,115,90,.2);border-radius:8px;padding:8px 12px;font-size:11px;font-weight:700;color:var(–accent);cursor:pointer;display:flex;align-items:center;gap:5px;width:100%;justify-content:center;margin-top:8px}
+
+/* COMPLETE BAR */
+.complete-bar{padding:10px 14px;flex-shrink:0;background:var(–bg)}
+.complete-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(–green),#3d8856);border:none;border-radius:var(–rs);font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:19px;letter-spacing:2px;color:#fff;cursor:pointer;box-shadow:0 3px 16px rgba(90,158,114,.28);transition:all var(–transition)}
+.complete-btn:active{transform:scale(.98)}
+
+/* CARDIO BLOCK */
+.cardio-section{padding:0 14px 8px}
+.cardio-divider{display:flex;align-items:center;gap:8px;margin:14px 0 10px}
+.cardio-div-line{flex:1;height:1px;background:var(–border)}
+.cardio-div-txt{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(–text3)}
+.cardio-card{background:var(–surface);border:1px solid var(–border);border-radius:var(–r);overflow:hidden;box-shadow:var(–shadow)}
+.cardio-top-bar{height:3px;background:linear-gradient(90deg,var(–blue),transparent);opacity:.7}
+.cardio-body{padding:14px}
+.cardio-title{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:20px;letter-spacing:1px}
+.cardio-proto{font-size:13px;font-weight:700;color:var(–blue);margin-top:2px}
+.cardio-detail{font-size:12px;color:var(–text2);margin-top:2px;line-height:1.4}
+.cardio-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:12px}
+.cardio-note{background:var(–surface3);border-radius:var(–rs);padding:9px 11px;font-size:12px;color:var(–text2);line-height:1.5;margin-bottom:10px}
+.cardio-note::before{content:’💡 ’}
+.cardio-edit-btn{font-size:11px;color:var(–accent);font-weight:600;cursor:pointer;text-align:right;margin-top:8px;text-decoration:underline}
+
+/* HIIT */
+.hiit-block{padding:14px}
+.hiit-stats{display:flex;gap:10px;margin-bottom:14px}
+.hiit-stat{flex:1;background:var(–surface);border:1px solid var(–border);border-radius:var(–rs);padding:10px;text-align:center;box-shadow:var(–shadow)}
+.hiit-stat-val{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:26px;color:var(–accent)}
+.hiit-stat-lbl{font-size:10px;color:var(–text3);text-transform:uppercase;letter-spacing:1px}
+.hiit-ring{width:170px;height:170px;margin:0 auto 16px;position:relative}
+.hiit-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.hiit-ring-bg{fill:none;stroke:var(–surface3);stroke-width:10}
+.hiit-ring-prog{fill:none;stroke:var(–accent);stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset 1s linear,stroke .3s}
+.hiit-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.hiit-time{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:44px;letter-spacing:2px;line-height:1}
+.hiit-phase{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px}
+.hiit-round{text-align:center;margin-bottom:14px;font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:700;font-size:20px}
+.hiit-ctrls{display:flex;gap:8px;margin-bottom:14px}
+
+/* WOD */
+.wod-block{padding:14px;display:flex;flex-direction:column;gap:10px}
+.wod-card{background:var(–surface);border:1px solid var(–border);border-radius:var(–r);padding:14px;box-shadow:var(–shadow)}
+.wod-type-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.wod-type-name{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:22px;letter-spacing:1px}
+.wod-movements{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.wod-mov{display:flex;align-items:center;gap:8px;background:var(–surface2);border-radius:var(–rs);padding:9px 11px}
+.wod-mov-name{font-weight:600;font-size:13px;flex:1}
+.wod-mov-rep{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:17px;color:var(–accent)}
+.wod-timer{text-align:center;margin:8px 0}
+.wod-timer-val{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:60px;letter-spacing:4px;color:var(–accent);line-height:1}
+.wod-timer-ctrls{display:flex;gap:8px;justify-content:center;margin-top:8px}
+.wod-btn{padding:10px 22px;background:var(–surface3);border:1px solid var(–border);border-radius:var(–rs);font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:700;font-size:15px;letter-spacing:1px;cursor:pointer;color:var(–text)}
+.wod-btn.start{background:var(–accent-dim);border-color:rgba(184,115,90,.4);color:var(–accent)}
+
+/* REST OVERLAY */
+.rest-overlay{position:fixed;bottom:0;left:0;right:0;background:var(–surface);border-top:2px solid var(–border2);padding:14px 18px max(22px,env(safe-area-inset-bottom));display:flex;align-items:center;gap:12px;z-index:300;transform:translateY(100%);transition:transform .3s cubic-bezier(.34,1.56,.64,1);box-shadow:0 -4px 20px rgba(42,35,28,.1)}
+.rest-overlay.open{transform:translateY(0)}
+.rest-info{flex:1}
+.rest-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(–text3)}
+.rest-cd{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:40px;letter-spacing:3px;line-height:1;color:var(–accent);transition:color .3s}
+.rest-cd.done{color:var(–green)}
+.rest-prog{height:3px;background:var(–surface3);border-radius:2px;margin-top:5px;overflow:hidden}
+.rest-prog-fill{height:100%;background:linear-gradient(90deg,var(–accent),var(–accent2));border-radius:2px;transition:width 1s linear}
+.rest-add{padding:9px 14px;background:var(–surface3);border:1px solid var(–border);border-radius:var(–rs);font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:700;font-size:13px;color:var(–text2);cursor:pointer}
+.rest-skip{padding:9px 10px;background:none;border:none;font-size:13px;font-weight:600;color:var(–text3);cursor:pointer}
+
+/* ══════════════ PROGRAMS SCREEN ══════════════ */
+#s-programs{background:var(–bg)}
+.prog-hdr{padding:48px 16px 14px;flex-shrink:0}
+.prog-card{background:var(–surface);border:1px solid var(–border);border-radius:var(–r);overflow:hidden;cursor:pointer;transition:all var(–transition);box-shadow:var(–shadow)}
+.prog-card:active{transform:scale(.98)}
+.prog-card.active-prog{border-color:rgba(184,115,90,.4)}
+.prog-card-body{padding:14px}
+.prog-card-name{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:20px;letter-spacing:1px}
+.prog-card-meta{font-size:11px;color:var(–text3);margin-top:2px}
+.prog-card-desc{font-size:12px;color:var(–text2);line-height:1.4;margin-top:5px}
+.prog-card-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.prog-card-foot{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;background:var(–surface2);border-top:1px solid var(–border)}
+.active-badge{font-size:11px;font-weight:700;color:var(–green);background:var(–green-dim);border:1px solid rgba(90,158,114,.3);border-radius:20px;padding:3px 9px}
+
+/* ══════════════ ADD PROGRAM ══════════════ */
+#s-addprog{background:var(–bg)}
+.addprog-hdr{padding:48px 14px 12px;flex-shrink:0;border-bottom:1px solid var(–border2);background:var(–surface)}
+.add-tabs{display:flex;gap:0;background:var(–surface3);border-radius:var(–rs);padding:3px;margin:14px}
+.add-tab{flex:1;padding:8px;border-radius:8px;text-align:center;font-size:12px;font-weight:700;color:var(–text3);cursor:pointer;transition:all var(–transition)}
+.add-tab.on{background:var(–surface);color:var(–accent);border:1px solid var(–border);box-shadow:var(–shadow)}
+.add-body{padding:0 14px 14px;display:flex;flex-direction:column;gap:12px}
+
+/* TEMPLATE CARD */
+.tpl-card{background:var(–surface);border:1px solid var(–border);border-radius:var(–r);overflow:hidden;cursor:pointer;box-shadow:var(–shadow)}
+.tpl-card:active{transform:scale(.98)}
+.tpl-body{padding:14px}
+.tpl-name{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:18px;letter-spacing:1px}
+.tpl-desc{font-size:12px;color:var(–text2);margin-top:4px;line-height:1.4}
+.tpl-foot{padding:9px 14px;background:var(–surface2);border-top:1px solid var(–border);font-size:12px;color:var(–accent);font-weight:700}
+
+/* CSV */
+.csv-box{background:var(–surface);border:1px solid var(–border);border-radius:var(–rs);padding:14px;box-shadow:var(–shadow)}
+.csv-box h4{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:800;font-size:17px;letter-spacing:1px;margin-bottom:6px;color:var(–accent)}
+.csv-box p{font-size:12px;color:var(–text2);line-height:1.6;margin-bottom:6px}
+.csv-box code{font-family:monospace;font-size:11px;background:var(–surface3);padding:1px 5px;border-radius:4px;color:var(–accent)}
+.csv-ex{background:var(–surface3);border-radius:var(–rs);padding:10px;font-family:monospace;font-size:9px;color:var(–text2);line-height:1.8;overflow-x:auto;white-space:pre;border:1px solid var(–border)}
+.file-drop{border:2px dashed var(–border2);border-radius:var(–rs);padding:28px;text-align:center;cursor:pointer;transition:all var(–transition)}
+.file-drop:active,.file-drop.drag{border-color:var(–accent);background:var(–accent-dim)}
+
+/* DAY BUILDER */
+.day-build-row{background:var(–surface);border:1px solid var(–border);border-radius:var(–rs);padding:11px 13px;display:flex;align-items:center;gap:9px;box-shadow:var(–shadow)}
+.dbr-num{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:20px;color:var(–text3);min-width:24px}
+.dbr-info{flex:1}
+.dbr-title{font-weight:700;font-size:13px}
+.dbr-sub{font-size:11px;color:var(–text3)}
+.icon-btn{width:30px;height:30px;background:var(–surface2);border:1px solid var(–border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;flex-shrink:0}
+
+/* EX BUILDER */
+.ex-build-row{background:var(–surface3);border-radius:var(–rs);padding:9px 11px;display:flex;align-items:center;gap:7px}
+.exb-name{flex:1;font-size:12px;font-weight:600}
+.exb-meta{font-size:11px;color:var(–text3)}
+
+/* ══════════════ PROGRESS SCREEN ══════════════ */
+#s-progress{background:var(–bg)}
+.prog-scr-hdr{padding:48px 16px 14px;flex-shrink:0}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding:0 14px;margin-bottom:14px}
+.stat-card{background:var(–surface);border:1px solid var(–border);border-radius:var(–rs);padding:12px;text-align:center;box-shadow:var(–shadow)}
+.stat-val{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:26px;color:var(–accent);line-height:1}
+.stat-lbl{font-size:9px;color:var(–text3);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+.pr-row{background:var(–surface);border:1px solid var(–border);border-radius:var(–rs);padding:12px 13px;display:flex;justify-content:space-between;align-items:center;box-shadow:var(–shadow)}
+.pr-name{font-weight:700;font-size:13px}
+.pr-sub{font-size:11px;color:var(–text3);margin-top:2px}
+.pr-val{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:20px;color:var(–accent);text-align:right}
+.pr-change{font-size:11px;text-align:right;margin-top:2px}
+.pr-change.up{color:var(–green)}
+.pr-change.new{color:var(–blue)}
+.prog-section-title{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:800;font-size:16px;letter-spacing:1px;color:var(–text2);text-transform:uppercase;padding:0 14px;margin:14px 0 7px}
+.prog-list{padding:0 14px;display:flex;flex-direction:column;gap:6px}
+.vol-bar-row{background:var(–surface);border:1px solid var(–border);border-radius:var(–rs);padding:10px 13px;box-shadow:var(–shadow)}
+.vol-bar-top{display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:5px}
+.vol-bar-bg{height:6px;background:var(–surface3);border-radius:3px;overflow:hidden}
+.vol-bar-fill{height:100%;background:linear-gradient(90deg,var(–accent),var(–accent2));border-radius:3px;transition:width .6s ease}
+
+/* ══════════════ HISTORY SCREEN ══════════════ */
+#s-history{background:var(–bg)}
+.hist-hdr{padding:48px 16px 14px;flex-shrink:0}
+.hist-card{background:var(–surface);border:1px solid var(–border);border-radius:var(–r);overflow:hidden;box-shadow:var(–shadow);margin-bottom:10px}
+.hist-card-top{padding:13px 14px;display:flex;justify-content:space-between;align-items:flex-start}
+.hist-title{font-weight:700;font-size:14px}
+.hist-meta{font-size:11px;color:var(–text3);margin-top:2px}
+.hist-stats-row{display:flex;gap:12px;padding:0 14px 12px}
+.hist-stat{display:flex;flex-direction:column}
+.hist-stat-val{font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:19px;line-height:1}
+.hist-stat-lbl{font-size:10px;color:var(–text3);text-transform:uppercase;letter-spacing:.5px}
+.hist-highlights{padding:10px 14px;background:var(–surface2);border-top:1px solid var(–border);display:flex;flex-direction:column;gap:3px}
+.hist-hl-row{display:flex;justify-content:space-between;font-size:12px}
+.hist-hl-name{color:var(–text2)}
+.hist-hl-val{font-weight:700}
+.hist-card-foot{padding:8px 14px;border-top:1px solid var(–border);display:flex;gap:8px;background:var(–surface2)}
+.hist-edit-btn{font-size:11px;color:var(–accent);font-weight:600;cursor:pointer;background:none;border:none;padding:2px 0}
+.hist-delete-btn{font-size:11px;color:var(–red);font-weight:600;cursor:pointer;background:none;border:none;padding:2px 0;margin-left:auto}
+.in-progress-banner{background:linear-gradient(90deg,var(–accent-dim),transparent);border:1px solid rgba(184,115,90,.25);border-radius:var(–rs);padding:8px 12px;margin:0 14px 10px;font-size:12px;font-weight:600;color:var(–accent);display:flex;align-items:center;gap:6px}
+
+/* AVATAR PICKER */
+.av-pick{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin:7px 0 14px}
+.av-opt{aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,‘Helvetica Neue’,Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:17px;color:#fff;cursor:pointer;opacity:.55;transition:all var(–transition);border:3px solid transparent}
+.av-opt.sel{opacity:1;border-color:var(–text)}
+
+/* PROGRAM OPTIONS MODAL */
+.prog-opt-item{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(–border);cursor:pointer}
+.prog-opt-item:last-child{border-bottom:none}
+.prog-opt-icon{font-size:20px;width:32px;text-align:center}
+.prog-opt-label{font-weight:600;font-size:15px}
+.prog-opt-sub{font-size:12px;color:var(–text3);margin-top:1px}
+
+/* EDIT HISTORY MODAL */
+.edit-set-row{display:grid;grid-template-columns:28px 1fr 1fr;gap:7px;margin-bottom:7px;align-items:center}
+.edit-set-n{font-size:13px;font-weight:700;color:var(–text3);text-align:center}
+</style>
+
+</head>
+<body>
+<div id="app">
+
+<!-- ══ USERS ══ -->
+
+<div id="s-users" class="screen active">
+  <div class="users-hero"><div class="forge-mark">FORGE</div><div class="forge-tag">Train Together. Track Everything.</div></div>
+  <div class="users-grid" id="usersGrid"></div>
+  <div class="users-foot"><button class="btn btn-ghost btn-full" onclick="openModal('m-adduser')">+ Add Profile</button></div>
+</div>
+
+<!-- ══ HOME ══ -->
+
+<div id="s-home" class="screen">
+  <div class="home-top">
+    <div><div class="home-greeting">Welcome back</div><div class="home-name" id="homeName">JARRETT</div></div>
+    <div class="switch-btn" onclick="goToUsers()"><div class="sw-av" id="swAv"></div><div class="sw-nm" id="swNm">Switch</div></div>
+  </div>
+  <div class="scroll">
+    <div id="homeProgHero"></div>
+    <div id="homeWeekStrip"></div>
+    <div class="sec-hdr"><div class="sec-title">THIS WEEK</div><div class="sec-action" onclick="showScreen('s-programs')">Programs →</div></div>
+    <div class="day-list" id="homeDayList"></div>
+    <div style="height:10px"></div>
+  </div>
+  <div class="bnav" id="bnav-home">
+    <div class="bnav-item on" onclick="showScreen('s-home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg><span class="bnav-label">Home</span></div>
+    <div class="bnav-item" onclick="showScreen('s-progress')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span class="bnav-label">Progress</span></div>
+    <div class="bnav-item" onclick="showScreen('s-programs')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span class="bnav-label">Programs</span></div>
+    <div class="bnav-item" onclick="showScreen('s-history')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="bnav-label">History</span></div>
+  </div>
+</div>
+
+<!-- ══ WORKOUT ══ -->
+
+<div id="s-workout" class="screen">
+  <div class="wk-nav">
+    <div class="back-btn" onclick="goBackFromWorkout()">←</div>
+    <div class="wk-nav-info"><div class="wk-nav-day" id="wNavDay">Day 1 · Week 1</div><div class="wk-nav-title" id="wNavTitle">LEGS</div></div>
+    <div id="wNavTag"></div>
+    <div class="wk-timer-pill" onclick="toggleWorkoutTimer()">
+      <div class="wk-timer-dot" id="wkTimerDot"></div>
+      <div class="wk-timer-txt" id="wkTimerTxt">START</div>
+    </div>
+  </div>
+  <div class="scroll" id="wkBody"></div>
+  <div class="complete-bar"><button class="complete-btn" onclick="completeWorkout()">✓ COMPLETE WORKOUT</button></div>
+</div>
+
+<!-- ══ PROGRAMS ══ -->
+
+<div id="s-programs" class="screen">
+  <div class="prog-hdr"><div class="display" style="font-size:32px;letter-spacing:2px">PROGRAMS</div><div style="font-size:12px;color:var(--text3);margin-top:2px" id="progsUserLbl"></div></div>
+  <div class="scroll">
+    <div style="padding:0 14px 12px;display:flex;gap:8px">
+      <button class="btn btn-accent btn-sm" style="flex:1" onclick="showScreen('s-addprog')">+ New Program</button>
+    </div>
+    <div style="padding:0 14px;display:flex;flex-direction:column;gap:9px" id="progsList"></div>
+    <div style="height:10px"></div>
+  </div>
+  <div class="bnav">
+    <div class="bnav-item" onclick="showScreen('s-home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg><span class="bnav-label">Home</span></div>
+    <div class="bnav-item" onclick="showScreen('s-progress')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span class="bnav-label">Progress</span></div>
+    <div class="bnav-item on" onclick="showScreen('s-programs')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span class="bnav-label">Programs</span></div>
+    <div class="bnav-item" onclick="showScreen('s-history')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="bnav-label">History</span></div>
+  </div>
+</div>
+
+<!-- ══ ADD PROGRAM ══ -->
+
+<div id="s-addprog" class="screen">
+  <div class="addprog-hdr">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="back-btn" onclick="showScreen('s-programs')">←</div>
+      <div class="display" style="font-size:26px;letter-spacing:2px">NEW PROGRAM</div>
+    </div>
+  </div>
+  <div class="add-tabs" style="margin:12px 14px 0">
+    <div class="add-tab on" onclick="switchAddTab('form')">📋 Form</div>
+    <div class="add-tab" onclick="switchAddTab('csv')">📂 Import CSV</div>
+    <div class="add-tab" onclick="switchAddTab('tpl')">⚡ Templates</div>
+  </div>
+  <div class="scroll">
+    <!-- FORM TAB -->
+    <div id="addTab-form" class="add-body">
+      <div style="background:var(--accent-dim);border:1px solid rgba(184,115,90,.2);border-radius:var(--rs);padding:12px;font-size:12px;color:var(--text2);line-height:1.6">
+        <strong style="color:var(--accent)">How it works:</strong> Fill in the program name, then tap <strong>"+ Add Day"</strong> to build each workout day. Tap the ✏️ button on any day to add exercises. When done, tap Save.
+      </div>
+      <div class="inp-wrap"><div class="inp-label">Program Name *</div><input class="inp" id="pName" placeholder="e.g. Dad Strength Season 2" maxlength="40"></div>
+      <div class="inp-wrap"><div class="inp-label">Description (optional)</div><textarea class="inp" id="pDesc" placeholder="Goals, focus, notes for yourself" rows="2"></textarea></div>
+      <div class="inp-wrap"><div class="inp-label">Days Per Week</div>
+        <select class="inp" id="pDays"><option value="3">3 days</option><option value="4">4 days</option><option value="5">5 days</option><option value="6" selected>6 days</option><option value="7">7 days</option></select>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div class="inp-label">Workout Days</div>
+          <button class="btn btn-ghost btn-sm" onclick="addDayBuilder()">+ Add Day</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:7px" id="dayBuilder"></div>
+        <div style="font-size:12px;color:var(--text3);margin-top:6px;text-align:center" id="dayBuilderHint">Tap "+ Add Day" to start building your program</div>
+      </div>
+      <button class="btn btn-accent btn-full" onclick="saveFormProgram()">💾 Save Program</button>
+    </div>
+    <!-- CSV TAB -->
+    <div id="addTab-csv" style="display:none" class="add-body">
+      <div class="csv-box">
+        <h4>📂 Import from Spreadsheet</h4>
+        <p>Export your program from Excel or Google Sheets as a <code>.csv</code> file using the format below. One row per exercise per day.</p>
+        <p><strong>Required:</strong> <code>day</code>, <code>name</code>, <code>type</code><br><strong>Optional:</strong> <code>sets</code>, <code>reps</code>, <code>notes</code>, <code>link</code>, <code>superset</code></p>
+        <div class="csv-ex">day,type,name,sets,reps,notes,superset
+1,strength,Smith Machine Squat,4,6-8,Full depth,A
+1,strength,Cable Tibialis Raise,4,20,Knee health,A
+2,strength,DB Romanian Deadlift,3,10-12,,
+3,hiit,Bike Intervals,,,,
+3,cardio,Incline Walk,,,Zone 2 30 min,</div>
+      </div>
+      <div class="inp-wrap"><div class="inp-label">Program Name *</div><input class="inp" id="csvName" placeholder="My Imported Program"></div>
+      <div class="file-drop" id="csvDrop" onclick="document.getElementById('csvFile').click()">
+        <input type="file" id="csvFile" accept=".csv,.txt" style="display:none" onchange="handleCSV(this)">
+        <div style="font-size:32px;margin-bottom:6px">📂</div>
+        <div style="font-size:13px;color:var(--text2)">Tap to select your CSV file</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:3px">Accepts .csv or .txt</div>
+      </div>
+      <div id="csvPreview" style="display:none"></div>
+      <button class="btn btn-accent btn-full" id="csvSaveBtn" style="display:none" onclick="saveCSVProgram()">💾 Save Imported Program</button>
+    </div>
+    <!-- TEMPLATES TAB -->
+    <div id="addTab-tpl" style="display:none;padding:14px;display:flex;flex-direction:column;gap:9px" id="tplList">
+      <div style="font-size:12px;color:var(--text2);padding:0;line-height:1.5">Tap any template to add it to your program library instantly. You can edit it after adding.</div>
+      <div id="tplCards"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PROGRESS ══ -->
+
+<div id="s-progress" class="screen">
+  <div class="prog-scr-hdr"><div class="display" style="font-size:32px;letter-spacing:2px">PROGRESS</div><div style="font-size:12px;color:var(--text3);margin-top:2px" id="progUserLbl"></div></div>
+  <div class="scroll">
+    <div class="stat-grid" id="statsGrid"></div>
+    <div class="prog-section-title">PERSONAL RECORDS</div>
+    <div class="prog-list" id="prList"></div>
+    <div class="prog-section-title">VOLUME BY EXERCISE</div>
+    <div class="prog-list" id="volList"></div>
+    <div style="height:10px"></div>
+  </div>
+  <div class="bnav">
+    <div class="bnav-item" onclick="showScreen('s-home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg><span class="bnav-label">Home</span></div>
+    <div class="bnav-item on" onclick="showScreen('s-progress')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span class="bnav-label">Progress</span></div>
+    <div class="bnav-item" onclick="showScreen('s-programs')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span class="bnav-label">Programs</span></div>
+    <div class="bnav-item" onclick="showScreen('s-history')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="bnav-label">History</span></div>
+  </div>
+</div>
+
+<!-- ══ HISTORY ══ -->
+
+<div id="s-history" class="screen">
+  <div class="hist-hdr"><div class="display" style="font-size:32px;letter-spacing:2px">HISTORY</div><div style="font-size:12px;color:var(--text3);margin-top:2px" id="histUserLbl"></div></div>
+  <div class="scroll">
+    <div id="histInProgress"></div>
+    <div style="padding:0 14px;display:flex;flex-direction:column" id="histList"></div>
+    <div style="height:10px"></div>
+  </div>
+  <div class="bnav">
+    <div class="bnav-item" onclick="showScreen('s-home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg><span class="bnav-label">Home</span></div>
+    <div class="bnav-item" onclick="showScreen('s-progress')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span class="bnav-label">Progress</span></div>
+    <div class="bnav-item" onclick="showScreen('s-programs')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span class="bnav-label">Programs</span></div>
+    <div class="bnav-item on" onclick="showScreen('s-history')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span class="bnav-label">History</span></div>
+  </div>
+</div>
+
+<!-- ══ REST OVERLAY ══ -->
+
+<div class="rest-overlay" id="restOverlay">
+  <div class="rest-info">
+    <div class="rest-lbl">Rest Timer</div>
+    <div class="rest-cd" id="restCd">1:30</div>
+    <div class="rest-prog"><div class="rest-prog-fill" id="restFill" style="width:100%"></div></div>
+  </div>
+  <button class="rest-add" onclick="addRest(30)">+30s</button>
+  <button class="rest-skip" onclick="stopRest()">Skip</button>
+</div>
+
+<!-- ══ MODALS ══ -->
+
+<!-- Add User -->
+
+<div class="modal-bg" id="m-adduser">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">New Profile</div>
+    <div class="modal-sub">Each profile has their own programs, logs, and history.</div>
+    <div class="inp-wrap" style="margin-bottom:12px"><div class="inp-label">Name</div><input class="inp" id="newUserName" placeholder="Your name" maxlength="20"></div>
+    <div class="inp-label" style="margin-bottom:7px">Pick a color</div>
+    <div class="av-pick" id="avPick"></div>
+    <button class="btn btn-accent btn-full" onclick="saveNewUser()" style="margin-bottom:8px">Create Profile</button>
+    <button class="btn btn-ghost btn-full" onclick="closeModal('m-adduser')">Cancel</button>
+  </div>
+</div>
+
+<!-- Program Options -->
+
+<div class="modal-bg" id="m-progopts">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="mProgOptTitle">Program</div>
+    <div id="mProgOptItems" style="margin-top:6px"></div>
+    <button class="btn btn-ghost btn-full" style="margin-top:10px" onclick="closeModal('m-progopts')">Cancel</button>
+  </div>
+</div>
+
+<!-- Day Editor -->
+
+<div class="modal-bg" id="m-dayedit">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="mDayEditTitle">Edit Day</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px">
+      <div class="inp-wrap"><div class="inp-label">Day Title</div><input class="inp" id="deTitle" placeholder="e.g. LEGS — Quad Focus"></div>
+      <div class="inp-wrap"><div class="inp-label">Workout Type</div>
+        <select class="inp" id="deType">
+          <option value="strength">💪 Strength / Hypertrophy</option>
+          <option value="cardio">🏃 Cardio</option>
+          <option value="hiit">⚡ HIIT</option>
+          <option value="crossfit">🔥 CrossFit / WOD</option>
+          <option value="rest">😴 Rest Day</option>
+        </select>
+      </div>
+      <div class="inp-wrap"><div class="inp-label">Focus / Subtitle</div><input class="inp" id="deFocus" placeholder="e.g. Back Priority | Carry Strength"></div>
+      <div id="deCardioSection" style="display:none">
+        <div class="inp-label" style="margin-bottom:8px">Post-Lift Cardio (optional)</div>
+        <div style="display:flex;flex-direction:column;gap:7px">
+          <input class="inp" id="deCardioProto" placeholder="Protocol (e.g. Incline Treadmill Walk)">
+          <input class="inp" id="deCardioDetail" placeholder="Detail (e.g. 3.5 mph / 10% grade / 30 min)">
+          <select class="inp" id="deCardioType"><option value="">No cardio</option><option value="liss">LISS</option><option value="hiit">HIIT</option><option value="active">Active Recovery</option></select>
+        </div>
+      </div>
+      <div id="deExSection">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
+          <div class="inp-label">Exercises</div>
+          <button class="btn btn-ghost btn-sm" onclick="addExToEditor()">+ Exercise</button>
+        </div>
+        <div id="deExList" style="display:flex;flex-direction:column;gap:5px;margin-bottom:8px"></div>
+        <div id="deExForm" style="display:none;background:var(--surface3);border-radius:var(--rs);padding:10px;display:flex;flex-direction:column;gap:7px">
+          <input class="inp" id="deExName" placeholder="Exercise name *">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+            <input class="inp" id="deExSets" type="number" placeholder="Sets" inputmode="numeric">
+            <input class="inp" id="deExReps" placeholder="Reps (e.g. 8-10)">
+            <input class="inp" id="deExPair" placeholder="Group (A/B/C)" maxlength="2">
+          </div>
+          <input class="inp" id="deExNotes" placeholder="Coaching notes (optional)">
+          <input class="inp" id="deExLink" placeholder="Demo URL (optional — auto-fills YouTube)">
+          <button class="btn btn-accent btn-sm" onclick="confirmAddEx()">+ Add This Exercise</button>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-accent btn-full" onclick="saveDayEdit()" style="margin-bottom:8px">Save Day</button>
+    <button class="btn btn-ghost btn-full" onclick="closeModal('m-dayedit')">Cancel</button>
+  </div>
+</div>
+
+<!-- Cardio Edit -->
+
+<div class="modal-bg" id="m-cardioedit">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Edit Post-Lift Cardio</div>
+    <div class="modal-sub">Change, create, or skip today's cardio session.</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
+      <div class="inp-wrap"><div class="inp-label">Type</div>
+        <select class="inp" id="ceType"><option value="">Skip cardio today</option><option value="liss">LISS (steady state)</option><option value="hiit">HIIT (intervals)</option><option value="active">Active Recovery</option></select>
+      </div>
+      <div class="inp-wrap"><div class="inp-label">Protocol</div><input class="inp" id="ceProto" placeholder="e.g. Incline Treadmill Walk"></div>
+      <div class="inp-wrap"><div class="inp-label">Detail / Duration</div><input class="inp" id="ceDetail" placeholder="e.g. 3.5 mph / 10% grade / 30 min"></div>
+      <div class="inp-wrap"><div class="inp-label">HR Zone</div>
+        <select class="inp" id="ceZone"><option value="1">Zone 1 — Active Recovery</option><option value="2" selected>Zone 2 — Fat Burn / Aerobic</option><option value="3">Zone 3 — Aerobic</option><option value="4">Zone 4 — Threshold</option><option value="5">Zone 5 — Max Effort</option></select>
+      </div>
+      <div class="inp-wrap"><div class="inp-label">Notes</div><input class="inp" id="ceNotes" placeholder="Coaching notes"></div>
+    </div>
+    <button class="btn btn-accent btn-full" onclick="saveCardioEdit()" style="margin-bottom:8px">Save</button>
+    <button class="btn btn-ghost btn-full" onclick="closeModal('m-cardioedit')">Cancel</button>
+  </div>
+</div>
+
+<!-- Complete Modal -->
+
+<div class="modal-bg" id="m-complete">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div style="font-size:48px;text-align:center;margin-bottom:8px">🔥</div>
+    <div class="modal-title" style="text-align:center">WORKOUT DONE</div>
+    <div class="modal-sub" style="text-align:center" id="mComplSub">Day 1 completed</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px">
+      <div class="stat-card"><div class="stat-val" id="mComplSets">0</div><div class="stat-lbl">Sets</div></div>
+      <div class="stat-card"><div class="stat-val" id="mComplEx">0</div><div class="stat-lbl">Exercises</div></div>
+      <div class="stat-card"><div class="stat-val" id="mComplTime">0:00</div><div class="stat-lbl">Duration</div></div>
+    </div>
+    <button class="btn btn-accent btn-full" onclick="closeCompleteModal()" style="margin-bottom:8px">BACK TO HOME</button>
+    <button class="btn btn-ghost btn-full" onclick="goToHistoryFromComplete()">View in History</button>
+  </div>
+</div>
+
+<!-- Edit History Session -->
+
+<div class="modal-bg" id="m-edithistory">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Edit Session</div>
+    <div class="modal-sub" id="mEditHistSub">Edit your logged data</div>
+    <div id="mEditHistBody" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px"></div>
+    <button class="btn btn-accent btn-full" onclick="saveHistoryEdit()" style="margin-bottom:8px">Save Changes</button>
+    <button class="btn btn-ghost btn-full" onclick="closeModal('m-edithistory')">Cancel</button>
+  </div>
+</div>
+
+<!-- Toast -->
+
+<div class="toast" id="toast"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════
+const AV_COLORS = ['#b87050','#6080c0','#60a870','#9060b0','#b09040','#b06060','#408888','#c07090','#607850','#806040'];
+const WEEK_PHASES = ['Establish — find your working weights','Build — chase the top of rep range','Overload — add 5-10 lbs where earned','Deload — cut volume 40%, keep weight'];
+const TYPE_META = {
+  strength:{label:'Strength',icon:'💪',cls:'tag-strength'},
+  cardio:  {label:'Cardio',  icon:'🏃',cls:'tag-cardio'},
+  hiit:    {label:'HIIT',    icon:'⚡',cls:'tag-hiit'},
+  crossfit:{label:'WOD',     icon:'🔥',cls:'tag-crossfit'},
+  rest:    {label:'Rest',    icon:'😴',cls:'tag-rest'}
+};
+
+// ═══════════════════════════════════════════════
+// PROGRAM DATA
+// ═══════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let S = { users:[], activeUserId:null };
+const STORE_KEY = 'forge_v3';
+
+// Robust storage with multiple fallbacks
+var _memStore = {};
+function _storageSet(k, v) {
+  _memStore[k] = v;
+  try { localStorage.setItem(k, v); } catch(e) {}
+  try { sessionStorage.setItem(k, v); } catch(e) {}
+}
+function _storageGet(k) {
+  try { var v = localStorage.getItem(k); if(v) return v; } catch(e) {}
+  try { var v2 = sessionStorage.getItem(k); if(v2) return v2; } catch(e) {}
+  return _memStore[k] || null;
+}
+
+function save() {
+  try {
+    var json = JSON.stringify(S);
+    _storageSet(STORE_KEY, json);
+  } catch(e) { console.warn('Save failed:', e); }
+}
+function load() {
+  try {
+    var d = _storageGet(STORE_KEY);
+    if(d) { var parsed = JSON.parse(d); if(parsed) S = parsed; }
+  } catch(e) { console.warn('Load failed:', e); }
+}
+function activeUser(){ return S.users.find(u=>u.id===S.activeUserId); }
+function uData(){ const u=activeUser(); return u?u.data:null; }
+function setUD(k,v){ const u=activeUser(); if(u){if(!u.data)u.data={};u.data[k]=v;save();} }
+
+// Autosave logs immediately on every change
+function autoSaveLog(key, field, value) {
+  const d=uData(); if(!d) return;
+  if(!d.logs) d.logs={};
+  if(!d.logs[key]) d.logs[key]={};
+  d.logs[key][field]=value;
+  d.logs[key]._ts = Date.now();
+  save();
+}
+
+// ═══════════════════════════════════════════════
+// SCREENS
+// ═══════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  var _ss=document.getElementById(id);
+  if(!_ss){console.warn('Screen not found:',id);return;}
+  _ss.classList.add('active');
+  const renders={
+    's-users':renderUsers,'s-home':renderHome,'s-programs':renderPrograms,
+    's-progress':renderProgress,'s-history':renderHistory,'s-addprog':renderAddProg
+  };
+  if(renders[id]) renders[id]();
+}
+
+// ═══════════════════════════════════════════════
+// USERS
+// ═══════════════════════════════════════════════
+function renderUsers() {
+  const grid=document.getElementById('usersGrid');
+  grid.innerHTML = S.users.map(u=>{
+    const sess=((u && u.data ? u.data.sessions : null)||[]).length;
+    return `<div class="u-card" onclick="selectUser('${u.id}')">
+      <div class="u-avatar" style="background:${u.color}">${u.name[0].toUpperCase()}</div>
+      <div class="u-name">${u.name}</div>
+      <div class="u-meta">${sess} session${sess!==1?'s':''}</div>
+    </div>`;
+  }).join('') + `<div class="u-add" onclick="openModal('m-adduser')"><div style="font-size:26px">+</div><div style="font-size:12px;font-weight:600">New Profile</div></div>`;
+}
+
+function selectUser(id) {
+  S.activeUserId=id; save();
+  showScreen('s-home');
+}
+
+function goToUsers() { showScreen('s-users'); }
+
+let _selColor = AV_COLORS[0];
+function openAddUserModal() {
+  _selColor=AV_COLORS[Math.floor(Math.random()*AV_COLORS.length)];
+  document.getElementById('newUserName').value='';
+  document.getElementById('avPick').innerHTML=AV_COLORS.map(c=>
+    `<div class="av-opt${c===_selColor?' sel':''}" style="background:${c}" onclick="selAv('${c}',this)"></div>`
+  ).join('');
+  openModal('m-adduser');
+}
+function selAv(c,el){ _selColor=c; document.querySelectorAll('.av-opt').forEach(e=>e.classList.remove('sel')); el.classList.add('sel'); }
+function saveNewUser() {
+  const name=document.getElementById('newUserName').value.trim();
+  if(!name){showToast('Enter a name');return;}
+  const u={id:'u_'+Date.now(),name,color:_selColor,data:{programs:[],activeProgramId:null,currentWeek:1,logs:{},completed:{},sessions:[]}};
+  S.users.push(u); save(); closeModal('m-adduser'); renderUsers(); showToast(`${name} added!`);
+}
+
+// ═══════════════════════════════════════════════
+// HOME
+// ═══════════════════════════════════════════════
+function renderHome() {
+  const u=activeUser(); if(!u){showScreen('s-users');return;}
+  const d=u.data;
+  document.getElementById('homeName').textContent=u.name.toUpperCase();
+  document.getElementById('swAv').style.background=u.color;
+  document.getElementById('swAv').textContent=u.name[0].toUpperCase();
+  document.getElementById('swNm').textContent=u.name;
+
+  const prog=(d.programs||[]).find(function(p){return p.id===d.activeProgramId;});
+  const hero=document.getElementById('homeProgHero');
+  if(prog){
+    hero.innerHTML=`<div class="prog-hero"><div class="prog-bar"></div><div class="prog-hero-body"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="prog-hero-name">${prog.name}</div><div class="prog-hero-desc">${prog.desc||'Active Program'}</div></div><span class="tag tag-strength">${(prog.days && prog.days.length)||0} days</span></div></div></div>`;
+  } else {
+    hero.innerHTML=`<div class="no-prog-cta"><div class="cta-icon">🏗️</div><div class="cta-title">No Active Program</div><div class="cta-desc">Create a new program or load a template to get started.</div><button class="btn btn-accent" onclick="showScreen('s-programs')">Browse Programs</button></div>`;
+  }
+
+  const wk=d.currentWeek||1;
+  document.getElementById('homeWeekStrip').innerHTML=`<div style="margin:0 14px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow)">
+    <div style="display:flex;flex-direction:column;flex:1;min-width:0">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3)">Current Week</div>
+      <div style="font-size:22px;font-weight:900;color:var(--accent);line-height:1.1">Week ${wk}</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${WEEK_PHASES[((wk-1)%4)]}</div>
+    </div>
+    <div style="display:flex;gap:6px;flex-shrink:0">
+      <div class="wk-btn" onclick="changeWeek(-1)" style="width:34px;height:34px;font-size:18px">−</div>
+      <div class="wk-btn" onclick="changeWeek(1)" style="width:34px;height:34px;font-size:18px">+</div>
+    </div>
+  </div>`;
+
+  const list=document.getElementById('homeDayList');
+  if(!((prog && prog.days) ? prog.days.length : 0)){list.innerHTML='';return;}
+  list.innerHTML=prog.days.map((day,i)=>{
+    const key=`w${wk}_d${i}`;
+    const done=d.completed?.[key];
+    const inProg=(d.activeWorkout && d.activeWorkout.dayIdx)===i && !done;
+    const tm=TYPE_META[day.type]||TYPE_META.strength;
+    const isRest=day.type==='rest';
+    return `<div class="day-card${done?' done-card':''}" ${!isRest?`onclick="openWorkout(${i})"`:''}>
+      <div class="day-num-box"><div class="day-num-txt">${i+1}</div></div>
+      <div class="day-info">
+        <div class="day-title">${day.title||`Day ${i+1}`}</div>
+        <div class="day-sub">${day.focus||tm.label}${inProg?' · <span style="color:var(--accent);font-weight:700">In Progress</span>':''}</div>
+      </div>
+      <div class="day-right">
+        <span class="tag ${tm.cls}">${tm.icon} ${tm.label}</span>
+        <div class="done-ring${done?' done':''}">${done?'✓':''}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function changeWeek(dir) {
+  const d=uData(); if(!d) return;
+  d.currentWeek=Math.max(1,(d.currentWeek||1)+dir);
+  save(); renderHome();
+}
+
+// ═══════════════════════════════════════════════
+// WORKOUT TIMER
+// ═══════════════════════════════════════════════
+let wkTimerInterval=null, wkTimerSecs=0, wkTimerRunning=false;
+
+function startWorkoutTimer() {
+  if(wkTimerRunning) return;
+  wkTimerRunning=true;
+  document.getElementById('wkTimerDot').classList.add('running');
+  wkTimerInterval=setInterval(()=>{
+    wkTimerSecs++;
+    document.getElementById('wkTimerTxt').textContent=formatTime(wkTimerSecs);
+  },1000);
+}
+
+function toggleWorkoutTimer() {
+  if(!wkTimerRunning && wkTimerSecs===0) {
+    startWorkoutTimer();
+  } else if(wkTimerRunning) {
+    clearInterval(wkTimerInterval); wkTimerRunning=false;
+    document.getElementById('wkTimerDot').classList.remove('running');
+  } else {
+    startWorkoutTimer();
+  }
+}
+
+function resetWorkoutTimer() {
+  clearInterval(wkTimerInterval); wkTimerRunning=false; wkTimerSecs=0;
+  document.getElementById('wkTimerTxt').textContent='START';
+  document.getElementById('wkTimerDot').classList.remove('running');
+}
+
+// ═══════════════════════════════════════════════
+// WORKOUT
+// ═══════════════════════════════════════════════
+let currentDayIdx=null;
+
+function openWorkout(dayIdx) {
+  const d=uData(); if(!d) return;
+  const prog=(d.programs||[]).find(function(p){return p.id===d.activeProgramId;}); if(!prog) return;
+  const day=prog.days[dayIdx]; if(!day||day.type==='rest') return;
+  currentDayIdx=dayIdx;
+
+  // Mark as in-progress for history
+  if(!d.activeWorkout) {
+    d.activeWorkout={dayIdx,startTime:new Date().toISOString(),dayTitle:day.title,type:day.type,week:d.currentWeek||1};
+    save();
+  }
+
+  resetWorkoutTimer();
+  document.getElementById('wNavDay').textContent=`Day ${dayIdx+1} · Week ${d.currentWeek||1}`;
+  document.getElementById('wNavTitle').textContent=day.title||`Day ${dayIdx+1}`;
+  const tm=TYPE_META[day.type]||TYPE_META.strength;
+  document.getElementById('wNavTag').innerHTML=`<span class="tag ${tm.cls}">${tm.icon} ${tm.label}</span>`;
+  document.getElementById('wkTimerTxt').textContent='START';
+
+  const body=document.getElementById('wkBody');
+  body.innerHTML='<div style="height:10px"></div>';
+
+  if(day.type==='strength') renderStrengthWk(body,day,dayIdx,d);
+  else if(day.type==='cardio') renderCardioWk(body,day,dayIdx,d);
+  else if(day.type==='hiit') renderHIITWk(body,day,dayIdx,d);
+  else if(day.type==='crossfit') renderWOD(body,day,dayIdx,d);
+
+  // Attached cardio for strength days
+  if(day.cardio&&day.type==='strength') renderAttachedCardio(body,day,dayIdx,d);
+
+  showScreen('s-workout');
+}
+
+function goBackFromWorkout() {
+  stopRest();
+  stopHIIT(); stopWODTimer();
+  Object.values(cardioHIITStates).forEach(s=>{if(s.iv){clearInterval(s.iv);s.running=false;}});
+  if(wkTimerRunning){clearInterval(wkTimerInterval);wkTimerRunning=false;}
+  showScreen('s-home');
+}
+
+// ── STRENGTH ──
+function renderStrengthWk(container, day, dayIdx, d) {
+  const wk=d.currentWeek||1;
+  const exercises=day.exercises||[];
+  const pairCounts={};
+  exercises.forEach(ex=>{const p=ex.pair||'Z';pairCounts[p]=(pairCounts[p]||0)+1;});
+  const isSuperset=Object.values(pairCounts).some(c=>c>1);
+
+  if(isSuperset){
+    const groups={},order=[];
+    exercises.forEach(ex=>{const p=ex.pair||'Z';if(!groups[p]){groups[p]=[];order.push(p);}groups[p].push(ex);});
+    const pairNames={A:'SUPERSET A',B:'SUPERSET B',C:'SUPERSET C',D:'SUPERSET D',E:'SUPERSET E',Z:'EXERCISES'};
+    order.forEach(pair=>{
+      const div=document.createElement('div'); div.className='ss-block';
+      div.innerHTML=`<div class="ss-tag"><span>${pairNames[pair]||pair}</span><div class="ss-line"></div><span style="font-size:9px">Complete both · rest 60-90s</span></div>`;
+      groups[pair].forEach((ex,ei)=>{ div.insertAdjacentHTML('beforeend',buildExCard(ex,ei,pair,dayIdx,wk,d,true)); });
+      container.appendChild(div);
+    });
+  } else {
+    const wrap=document.createElement('div'); wrap.style.cssText='padding:0 14px;display:flex;flex-direction:column;gap:7px';
+    exercises.forEach((ex,ei)=>{ wrap.insertAdjacentHTML('beforeend',buildExCard(ex,ei,null,dayIdx,wk,d,false)); });
+    container.appendChild(wrap);
+  }
+}
+
+function buildExCard(ex,ei,pair,dayIdx,wk,d,isSuperset) {
+  const exId=ex.id||`d${dayIdx}_${pair||'s'}_${ei}`;
+  const loggedCount=countSets(wk,dayIdx,exId,ex.sets||3);
+  const isDone=loggedCount>=(ex.sets||3);
+  const chip=isSuperset?`${pair}${ei+1}`:ei+1;
+  const restSecs=isSuperset?75:90;
+  // Build YouTube link if none provided
+  const link=ex.link||(ex.name?`https://www.youtube.com/results?search_query=${encodeURIComponent(ex.name+' exercise form tutorial')}`:'');
+
+  let html=`<div class="ex-card${isDone?' ex-done':''}" id="excard_${exId}">
+    <div class="ex-hdr" onclick="toggleExBody('${exId}')">
+      <div class="ex-chip">${chip}</div>
+      <div class="ex-det"><div class="ex-name">${ex.name}</div><div class="ex-rx">${ex.sets||3} sets × ${ex.reps||'—'}</div></div>
+      <div class="ex-acts">
+        <a href="${link}" target="_blank" rel="noopener" class="demo-btn" onclick="event.stopPropagation()">▶ Demo</a>
+        <div class="ex-done-btn${isDone?' done':''}" id="exdone_${exId}" onclick="event.stopPropagation()">${isDone?'✓':''}</div>
+      </div>
+    </div>
+    <div class="ex-body" id="exbody_${exId}">
+      ${ex.notes?`<div class="ex-note">${ex.notes}</div>`:''}
+      <div class="sets-hdr"><div class="set-lbl">#</div><div class="set-lbl">Weight</div><div class="set-lbl">Reps</div><div class="set-lbl" style="font-size:9px;padding-top:12px;color:var(--text3);text-align:center;font-weight:600;text-transform:uppercase;letter-spacing:1px">Prev</div></div>`;
+
+  for(let s=1;s<=(ex.sets||3);s++){
+    const lk=`w${wk}_d${dayIdx}_${exId}_s${s}`;
+    const pk=`w${wk-1}_d${dayIdx}_${exId}_s${s}`;
+    const lg=d.logs?.[lk]||{};
+    const pv=wk>1?(d.logs?.[pk]||{}):{};
+    html+=`<div class="sets-row">
+      <div class="set-n">${s}</div>
+      <div class="set-col">
+        <input class="set-inp${lg.weight?' logged':''}" type="number" inputmode="decimal" placeholder="lbs" value="${lg.weight||''}"
+          oninput="autoSaveLog('${lk}','weight',this.value);this.classList.add('logged')"
+          onblur="checkExDone('${exId}',${dayIdx},${ex.sets||3})">
+        <div class="set-prev${pv.weight?' up':''}">${pv.weight?'↑'+pv.weight:''}</div>
+      </div>
+      <div class="set-col">
+        <input class="set-inp${lg.reps?' logged':''}" type="number" inputmode="numeric" placeholder="reps" value="${lg.reps||''}"
+          oninput="autoSaveLog('${lk}','reps',this.value);this.classList.add('logged')"
+          onblur="checkExDone('${exId}',${dayIdx},${ex.sets||3})">
+        <div class="set-prev">${pv.reps?'prev: '+pv.reps:''}</div>
+      </div>
+      <div class="set-col">
+        <div style="background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:10px 7px;font-size:12px;color:var(--text3);text-align:center">${pv.weight&&pv.reps?pv.weight+'×'+pv.reps:'—'}</div>
+        <div class="set-prev"></div>
+      </div>
+    </div>`;
+  }
+
+  html+=`<button class="timer-btn" onclick="startRest(${restSecs})">⏱ ${isSuperset?'Rest (60-90s)':'Rest (90s)'}</button>
+    </div>
+  </div>`;
+  return html;
+}
+
+function toggleExBody(id){const el=document.getElementById('exbody_'+id);if(el)el.style.display=el.style.display==='block'?'none':'block';}
+
+function checkExDone(exId,dayIdx,total){
+  const d=uData(); if(!d) return;
+  const wk=d.currentWeek||1;
+  const done=countSets(wk,dayIdx,exId,total)>=total;
+  const card=document.getElementById('excard_'+exId);
+  const btn=document.getElementById('exdone_'+exId);
+  if(card)card.classList.toggle('ex-done',done);
+  if(btn){btn.classList.toggle('done',done);btn.textContent=done?'✓':'';}
+}
+
+function countSets(wk,dayIdx,exId,total){
+  const d=uData(); if(!d) return 0;
+  let c=0;
+  for(let s=1;s<=total;s++){const l=d.logs?.[`w${wk}_d${dayIdx}_${exId}_s${s}`]||{};if(l.weight||l.reps)c++;}
+  return c;
+}
+
+// ── CARDIO ──
+function renderCardioWk(container,day,dayIdx,d){
+  const wk=d.currentWeek||1;
+  const exList=day.exercises||[{name:day.title,notes:day.focus}];
+  const div=document.createElement('div'); div.style.cssText='padding:14px;display:flex;flex-direction:column;gap:10px';
+  exList.forEach((ex,ei)=>{
+    const lk=`w${wk}_d${dayIdx}_c${ei}`;
+    const lg=d.logs?.[lk]||{};
+    div.insertAdjacentHTML('beforeend',`<div class="card"><div style="padding:14px">
+      <div style="font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:19px;letter-spacing:1px;margin-bottom:3px">${ex.name||day.title}</div>
+      ${ex.notes?`<div class="cardio-note" style="margin-bottom:10px">${ex.notes}</div>`:''}
+      <div class="cardio-grid">
+        <div class="inp-wrap"><div class="inp-label">Duration</div><input class="inp" type="text" placeholder="30 min" value="${lg.duration||''}" oninput="autoSaveLog('${lk}','duration',this.value)"></div>
+        <div class="inp-wrap"><div class="inp-label">Distance</div><input class="inp" type="number" inputmode="decimal" placeholder="mi" value="${lg.distance||''}" oninput="autoSaveLog('${lk}','distance',this.value)"></div>
+        <div class="inp-wrap"><div class="inp-label">Pace/Speed</div><input class="inp" type="text" placeholder="mph" value="${lg.pace||''}" oninput="autoSaveLog('${lk}','pace',this.value)"></div>
+        <div class="inp-wrap"><div class="inp-label">Avg HR</div><input class="inp" type="number" inputmode="numeric" placeholder="bpm" value="${lg.hr||''}" oninput="autoSaveLog('${lk}','hr',this.value)"></div>
+        <div class="inp-wrap"><div class="inp-label">Calories</div><input class="inp" type="number" inputmode="numeric" placeholder="kcal" value="${lg.cal||''}" oninput="autoSaveLog('${lk}','cal',this.value)"></div>
+        <div class="inp-wrap"><div class="inp-label">Incline</div><input class="inp" type="text" placeholder="%" value="${lg.incline||''}" oninput="autoSaveLog('${lk}','incline',this.value)"></div>
+      </div>
+      <div class="inp-wrap" style="margin-top:8px"><div class="inp-label">Notes</div><input class="inp" type="text" placeholder="How it felt..." value="${lg.notes||''}" oninput="autoSaveLog('${lk}','notes',this.value)"></div>
+    </div></div>`);
+  });
+  container.appendChild(div);
+}
+
+// ── HIIT ──
+let hiitIv=null, hiitState={running:false,phase:'work',rem:30,round:0,totalRounds:10,workSecs:30,restSecs:90,dayIdx:0,wk:1};
+function renderHIITWk(container,day,dayIdx,d){
+  const wk=d.currentWeek||1;
+  const ws=day.workIntervals||30,rs=day.restIntervals||90,rnd=day.rounds||10;
+  hiitState={running:false,phase:'work',rem:ws,round:0,totalRounds:rnd,workSecs:ws,restSecs:rs,dayIdx,wk};
+  const div=document.createElement('div'); div.className='hiit-block';
+  div.innerHTML=`<div style="font-size:12px;color:var(--text3);text-align:center;margin-bottom:12px">${day.notes||'Complete all rounds'}</div>
+    <div class="hiit-stats">
+      <div class="hiit-stat"><div class="hiit-stat-val">${ws}s</div><div class="hiit-stat-lbl">Work</div></div>
+      <div class="hiit-stat"><div class="hiit-stat-val">${rs}s</div><div class="hiit-stat-lbl">Rest</div></div>
+      <div class="hiit-stat"><div class="hiit-stat-val">${rnd}</div><div class="hiit-stat-lbl">Rounds</div></div>
+    </div>
+    <div class="hiit-ring">
+      <svg viewBox="0 0 170 170"><circle class="hiit-ring-bg" cx="85" cy="85" r="76"/><circle class="hiit-ring-prog" id="hiitProg" cx="85" cy="85" r="76" stroke-dasharray="478" stroke-dashoffset="0"/></svg>
+      <div class="hiit-center"><div class="hiit-time" id="hiitTime">${formatTime(ws)}</div><div class="hiit-phase" id="hiitPhase" style="color:var(--accent)">WORK</div></div>
+    </div>
+    <div class="hiit-round" id="hiitRound">Round 0 / ${rnd}</div>
+    <div class="hiit-ctrls">
+      <button class="btn btn-accent" style="flex:1" id="hiitBtn" onclick="toggleHIIT()">START</button>
+      <button class="btn btn-ghost" onclick="resetHIIT()">Reset</button>
+    </div>
+    <div id="hiitLog" style="display:none;padding-top:8px"></div>`;
+  container.appendChild(div);
+}
+
+function toggleHIIT(){
+  if(hiitState.running){clearInterval(hiitIv);hiitState.running=false;document.getElementById('hiitBtn').textContent='RESUME';}
+  else{
+    hiitState.running=true;
+    if(hiitState.round===0)hiitState.round=1;
+    document.getElementById('hiitBtn').textContent='PAUSE';
+    hiitIv=setInterval(tickHIIT,1000);updateHIITUI();
+  }
+}
+function tickHIIT(){
+  hiitState.rem--;
+  if(hiitState.rem<=0){
+    if(hiitState.phase==='work'){hiitState.phase='rest';hiitState.rem=hiitState.restSecs;}
+    else{
+      if(hiitState.round>=hiitState.totalRounds){clearInterval(hiitIv);hiitState.running=false;showToast('🔥 HIIT Done!');return;}
+      hiitState.round++;hiitState.phase='work';hiitState.rem=hiitState.workSecs;
+    }
+  }
+  updateHIITUI();
+}
+function updateHIITUI(){
+  const t=document.getElementById('hiitTime'),p=document.getElementById('hiitPhase'),r=document.getElementById('hiitRound'),c=document.getElementById('hiitProg');
+  if(!t)return;
+  t.textContent=formatTime(hiitState.rem);
+  p.textContent=hiitState.phase.toUpperCase();
+  p.style.color=hiitState.phase==='work'?'var(--accent)':'var(--blue)';
+  r.textContent=`Round ${hiitState.round} / ${hiitState.totalRounds}`;
+  const total=hiitState.phase==='work'?hiitState.workSecs:hiitState.restSecs;
+  c.style.strokeDashoffset=478*(1-hiitState.rem/total);
+  c.style.stroke=hiitState.phase==='work'?'var(--accent)':'var(--blue)';
+}
+function resetHIIT(){clearInterval(hiitIv);hiitState.running=false;hiitState.phase='work';hiitState.rem=hiitState.workSecs;hiitState.round=0;document.getElementById('hiitBtn').textContent='START';updateHIITUI();}
+function stopHIIT(){clearInterval(hiitIv);hiitState.running=false;}
+
+// ── WOD ──
+let wodIv=null,wodSecs=0,wodRunning=false;
+function renderWOD(container,day,dayIdx,d){
+  const wod=day.wod||{type:'fortime',movements:[],notes:''};
+  const wk=d.currentWeek||1;
+  const lk=`w${wk}_d${dayIdx}_wod`;
+  const lg=d.logs?.[lk]||{};
+  const tl={amrap:'AMRAP',fortime:'FOR TIME',emom:'EMOM',tabata:'TABATA'};
+  const td={amrap:`${wod.duration||20} min`,fortime:`${wod.timeCap?wod.timeCap+' min cap':'No cap'}`,emom:`${wod.duration||20} min`,tabata:'20s on / 10s off × 8'};
+  wodSecs=0;wodRunning=false;
+  const div=document.createElement('div'); div.className='wod-block';
+  div.innerHTML=`<div class="wod-card">
+    <div class="wod-type-row"><span class="tag tag-crossfit">${tl[wod.type]||'WOD'}</span><div class="wod-type-name">${tl[wod.type]||'WOD'}</div><div style="font-size:12px;color:var(--text2)">${td[wod.type]||''}</div></div>
+    ${wod.notes?`<div class="ex-note" style="margin-bottom:10px">${wod.notes}</div>`:''}
+    <div class="wod-movements">${(wod.movements||[]).map(m=>`<div class="wod-mov"><div class="wod-mov-name">${m.name}</div><div class="wod-mov-rep">${m.reps}</div></div>`).join('')}</div>
+    <div class="wod-timer"><div class="wod-timer-val" id="wodDisp">0:00</div></div>
+    <div class="wod-timer-ctrls"><button class="wod-btn start" id="wodBtn" onclick="toggleWOD()">START</button><button class="wod-btn" onclick="resetWODTimer()">Reset</button></div>
+  </div>
+  <div class="wod-card">
+    <div style="font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;font-stretch:condensed;font-weight:800;font-size:18px;letter-spacing:1px;margin-bottom:10px">LOG RESULT</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div class="inp-wrap"><div class="inp-label">${wod.type==='amrap'?'Rounds + Reps':'Time'}</div><input class="inp" type="text" placeholder="${wod.type==='amrap'?'e.g. 12+5':'e.g. 7:42'}" value="${lg.score||''}" oninput="autoSaveLog('${lk}','score',this.value)"></div>
+      <div class="inp-wrap"><div class="inp-label">Rx / Scaled</div><select class="inp" onchange="autoSaveLog('${lk}','rxed',this.value)"><option value="">Select</option><option value="rx" ${lg.rxed==='rx'?'selected':''}>Rx</option><option value="scaled" ${lg.rxed==='scaled'?'selected':''}>Scaled</option><option value="rx+" ${lg.rxed==='rx+'?'selected':''}>Rx+</option></select></div>
+    </div>
+    <div class="inp-wrap"><div class="inp-label">Notes</div><textarea class="inp" style="min-height:56px" oninput="autoSaveLog('${lk}','notes',this.value)">${lg.notes||''}</textarea></div>
+
+  </div>`;
+  container.appendChild(div);
+}
+function toggleWOD(){const btn=document.getElementById('wodBtn');if(wodRunning){clearInterval(wodIv);wodRunning=false;if(btn)btn.textContent='RESUME';}else{wodRunning=true;if(btn)btn.textContent='STOP';wodIv=setInterval(()=>{wodSecs++;const el=document.getElementById('wodDisp');if(el)el.textContent=formatTime(wodSecs);},1000);}}
+function resetWODTimer(){clearInterval(wodIv);wodRunning=false;wodSecs=0;const el=document.getElementById('wodDisp');if(el)el.textContent='0:00';const btn=document.getElementById('wodBtn');if(btn)btn.textContent='START';}
+function stopWODTimer(){clearInterval(wodIv);wodRunning=false;}
+
+// ── ATTACHED CARDIO ──
+const cardioHIITStates={};
+function renderAttachedCardio(container,day,dayIdx,d){
+const c=day.cardio; if(!c||!c.type) return;
+const wk=d.currentWeek||1;
+const lk=`w${wk}_d${dayIdx}_cardiopost`;
+const lg=d.logs?.[lk]||{};
+const typeColor={liss:‘var(–blue)’,hiit:‘var(–accent)’,active:‘var(–green)’};
+const col=typeColor[c.type]||‘var(–blue)’;
+const isHIIT=c.type===‘hiit’;
+const hid=`ch_${dayIdx}`;
+if(isHIIT) cardioHIITStates[hid]={running:false,phase:‘work’,rem:c.workSecs||30,round:0,totalRounds:c.rounds||10,workSecs:c.workSecs||30,restSecs:c.restSecs||90,iv:null};
+
+const sec=document.createElement(‘div’); sec.className=‘cardio-section’;
+sec.innerHTML=`<div class="cardio-divider"><div class="cardio-div-line"></div><div class="cardio-div-txt">Post-Lift Cardio</div><div class="cardio-div-line"></div></div> <div class="cardio-card"> <div class="cardio-top-bar"></div> <div class="cardio-body"> <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px"> <div> <div class="cardio-title">${c.label||'Cardio'}</div> <div class="cardio-proto" style="color:${col}">${c.protocol||''}</div> <div class="cardio-detail">${c.detail||''}</div> </div> <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px"> <span style="background:rgba(88,130,184,.1);border:1px solid rgba(88,130,184,.25);border-radius:20px;padding:3px 9px;font-size:11px;font-weight:700;color:var(--blue)">Z${c.hrZone||2}</span> <span class="cardio-edit-btn" onclick="openCardioEdit(${dayIdx})">✏️ Edit</span> </div> </div> ${c.notes?`<div class="cardio-note">${c.notes}</div>`:''} ${isHIIT?`<div style="text-align:center;margin-bottom:10px">
+<div style="font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;font-stretch:condensed;font-weight:900;font-size:50px;letter-spacing:3px;color:var(--accent);line-height:1" id="${hid}_t">${formatTime(c.workSecs||30)}</div>
+<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--accent);margin:4px 0" id="${hid}_p">WORK</div>
+<div style="font-size:13px;color:var(--text3)" id="${hid}_r">Round 0 / ${c.rounds||10}</div>
+<div style="display:flex;gap:8px;justify-content:center;margin-top:10px">
+<button class="btn btn-accent btn-sm" id="${hid}_btn" onclick="toggleCardioHIIT('${hid}')">START</button>
+<button class="btn btn-ghost btn-sm" onclick="resetCardioHIIT('${hid}')">Reset</button>
+</div>
+</div>`:''} <div style="margin-top:10px"> <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:7px">Log Cardio</div> <div class="cardio-grid"> <div class="inp-wrap"><div class="inp-label">Duration</div><input class="inp" type="text" placeholder="30 min" value="${lg.duration||''}" oninput="autoSaveLog('${lk}','duration',this.value)"></div> <div class="inp-wrap"><div class="inp-label">Avg HR</div><input class="inp" type="number" inputmode="numeric" placeholder="bpm" value="${lg.hr||''}" oninput="autoSaveLog('${lk}','hr',this.value)"></div> <div class="inp-wrap"><div class="inp-label">Calories</div><input class="inp" type="number" inputmode="numeric" placeholder="kcal" value="${lg.cal||''}" oninput="autoSaveLog('${lk}','cal',this.value)"></div> </div> <div class="inp-wrap" style="margin-top:7px"><div class="inp-label">Notes</div><input class="inp" type="text" placeholder="How it felt..." value="${lg.notes||''}" oninput="autoSaveLog('${lk}','notes',this.value)"></div> </div> </div> </div>`;
+container.appendChild(sec);
+}
+
+function toggleCardioHIIT(id){
+const s=cardioHIITStates[id]; if(!s)return;
+const btn=document.getElementById(id+’_btn’);
+if(s.running){clearInterval(s.iv);s.running=false;if(btn)btn.textContent=‘RESUME’;}
+else{
+s.running=true;if(s.round===0)s.round=1;if(btn)btn.textContent=‘PAUSE’;
+s.iv=setInterval(()=>{
+s.rem–;
+if(s.rem<=0){
+if(s.phase===‘work’){s.phase=‘rest’;s.rem=s.restSecs;}
+else{s.round++;if(s.round>s.totalRounds){clearInterval(s.iv);s.running=false;showToast(‘✅ Cardio done!’);return;}s.phase=‘work’;s.rem=s.workSecs;}
+}
+const t=document.getElementById(id+’_t’),p=document.getElementById(id+’_p’),r=document.getElementById(id+’_r’);
+if(t)t.textContent=formatTime(s.rem);
+if(p){p.textContent=s.phase.toUpperCase();p.style.color=s.phase===‘work’?‘var(–accent)’:‘var(–blue)’;}
+if(r)r.textContent=`Round ${s.round} / ${s.totalRounds}`;
+},1000);
+}
+}
+function resetCardioHIIT(id){
+const s=cardioHIITStates[id]; if(!s)return;
+clearInterval(s.iv);s.running=false;s.phase=‘work’;s.rem=s.workSecs;s.round=0;
+const t=document.getElementById(id+’_t’),p=document.getElementById(id+’_p’),r=document.getElementById(id+’_r’),btn=document.getElementById(id+’_btn’);
+if(t)t.textContent=formatTime(s.workSecs);if(p){p.textContent=‘WORK’;p.style.color=‘var(–accent)’;}
+if(r)r.textContent=`Round 0 / ${s.totalRounds}`;if(btn)btn.textContent=‘START’;
+}
+
+// ── CARDIO EDIT ──
+let _cardioEditDayIdx=null;
+function openCardioEdit(dayIdx){
+_cardioEditDayIdx=dayIdx;
+const d=uData(); if(!d) return;
+const prog=(d.programs||[]).find(function(p){return p.id===d.activeProgramId;}); if(!prog) return;
+const day=prog.days[dayIdx];
+const c=day.cardio||{};
+document.getElementById(‘ceType’).value=c.type||’’;
+document.getElementById(‘ceProto’).value=c.protocol||’’;
+document.getElementById(‘ceDetail’).value=c.detail||’’;
+document.getElementById(‘ceZone’).value=c.hrZone||2;
+document.getElementById(‘ceNotes’).value=c.notes||’’;
+openModal(‘m-cardioedit’);
+}
+function saveCardioEdit(){
+const d=uData(); if(!d||_cardioEditDayIdx===null) return;
+const prog=(d.programs||[]).find(function(p){return p.id===d.activeProgramId;}); if(!prog) return;
+const day=prog.days[_cardioEditDayIdx];
+const type=document.getElementById(‘ceType’).value;
+if(!type){day.cardio=null;}
+else{
+day.cardio={
+type,label:{liss:‘LISS Cardio’,hiit:‘HIIT Cardio’,active:‘Active Recovery’}[type]||‘Cardio’,
+protocol:document.getElementById(‘ceProto’).value,
+detail:document.getElementById(‘ceDetail’).value,
+hrZone:parseInt(document.getElementById(‘ceZone’).value)||2,
+notes:document.getElementById(‘ceNotes’).value,
+workSecs:30,restSecs:90,rounds:10
+};
+}
+save(); closeModal(‘m-cardioedit’);
+showToast(‘Cardio updated!’);
+// Refresh workout view
+openWorkout(_cardioEditDayIdx);
+}
+
+// ── COMPLETE WORKOUT ──
+function completeWorkout(){
+const d=uData(); if(!d||currentDayIdx===null) return;
+const prog=(d.programs||[]).find(function(p){return p.id===d.activeProgramId;}); if(!prog) return;
+const day=prog.days[currentDayIdx];
+const wk=d.currentWeek||1;
+const key=`w${wk}_d${currentDayIdx}`;
+
+let totalSets=0,totalEx=0,highlights=[],totalVol=0;
+if(day.type===‘strength’){
+(day.exercises||[]).forEach(ex=>{
+totalEx++;
+const exId=ex.id||`d${currentDayIdx}_${ex.pair||'s'}_0`;
+let bestW=0,bestR=0;
+for(let s=1;s<=(ex.sets||3);s++){
+const l=d.logs?.[`w${wk}_d${currentDayIdx}_${exId}_s${s}`]||{};
+if(l.weight||l.reps){totalSets++;const w=parseFloat(l.weight)||0,r=parseInt(l.reps)||0;if(w>bestW)bestW=w;if(r>bestR)bestR=r;totalVol+=w*r;}
+}
+if(bestW>0)highlights.push({name:ex.name,val:`${bestW} lbs × ${bestR}`});
+});
+}
+
+if(!d.completed)d.completed={};
+d.completed[key]={date:new Date().toISOString(),sets:totalSets,exercises:totalEx,vol:totalVol};
+
+const duration=wkTimerSecs;
+const session={
+id:Date.now(),dayIdx:currentDayIdx,dayTitle:day.title,type:day.type,
+week:wk,date:new Date().toISOString(),sets:totalSets,exercises:totalEx,
+vol:totalVol,duration,highlights:highlights.slice(0,6),
+logs:JSON.parse(JSON.stringify(d.logs||{})) // snapshot logs at completion
+};
+if(!d.sessions)d.sessions=[];
+d.sessions.unshift(session);
+delete d.activeWorkout;
+save();
+
+stopRest(); stopHIIT(); stopWODTimer();
+clearInterval(wkTimerInterval); wkTimerRunning=false;
+
+document.getElementById(‘mComplSub’).textContent=`Day ${currentDayIdx+1} — ${day.title}`;
+document.getElementById(‘mComplSets’).textContent=totalSets||‘✓’;
+document.getElementById(‘mComplEx’).textContent=totalEx||(day.exercises && day.exercises.length)||‘✓’;
+document.getElementById(‘mComplTime’).textContent=formatTime(duration);
+openModal(‘m-complete’);
+}
+function closeCompleteModal(){closeModal(‘m-complete’);showScreen(‘s-home’);}
+function goToHistoryFromComplete(){closeModal(‘m-complete’);showScreen(‘s-history’);}
+
+// ═══════════════════════════════════════════════
+// PROGRAMS
+// ═══════════════════════════════════════════════
+function renderPrograms(){
+const d=uData(); const u=activeUser();
+document.getElementById(‘progsUserLbl’).textContent=(u && u.name)||’’;
+const list=document.getElementById(‘progsList’);
+if(!(d && d.programs)?.length){
+list.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div>No programs yet. Create one or load a template.</div></div>`;
+return;
+}
+list.innerHTML=d.programs.map(p=>{
+const isActive=p.id===d.activeProgramId;
+const types=[…new Set((p.days||[]).map(d=>d.type).filter(t=>t&&t!==‘rest’))];
+return `<div class="prog-card${isActive?' active-prog':''}" onclick="openProgOpts('${p.id}')"> <div class="prog-card-body"> <div style="display:flex;justify-content:space-between;align-items:flex-start"> <div><div class="prog-card-name">${p.name}</div><div class="prog-card-meta">${(p.days && p.days.length)||0} days</div></div> ${isActive?'<span class="active-badge">✓ Active</span>':''} </div> ${p.desc?`<div class="prog-card-desc">${p.desc}</div>`:''} <div class="prog-card-tags">${types.map(t=>`<span class="tag ${TYPE_META[t]?.cls||''}">${TYPE_META[t]?.icon||’’} ${TYPE_META[t]?.label||t}</span>`).join('')}</div> </div> </div>`;
+}).join(’’);
+}
+
+let _optProgId=null;
+function openProgOpts(id){
+_optProgId=id;
+const d=uData();
+const prog=(d.programs||[]).find(function(p){return p.id===id;});
+document.getElementById(‘mProgOptTitle’).textContent=(prog && prog.name)||‘Program’;
+const isActive=id===d.activeProgramId;
+document.getElementById(‘mProgOptItems’).innerHTML=` <div class="prog-opt-item" onclick="activateProg()"><div class="prog-opt-icon">${isActive?'✅':'▶️'}</div><div><div class="prog-opt-label">${isActive?'Currently Active':'Set as Active'}</div><div class="prog-opt-sub">${isActive?'This is your current program':'Switch to this program'}</div></div></div> <div class="prog-opt-item" onclick="editProgram('${id}')"><div class="prog-opt-icon">✏️</div><div><div class="prog-opt-label">Edit Program</div><div class="prog-opt-sub">Change days, exercises, or cardio</div></div></div> <div class="prog-opt-item" onclick="deleteProg('${id}')" style="color:var(--red)"><div class="prog-opt-icon">🗑️</div><div><div class="prog-opt-label" style="color:var(--red)">Delete Program</div><div class="prog-opt-sub" style="color:var(--red)">This cannot be undone</div></div></div>`;
+openModal(‘m-progopts’);
+}
+
+function activateProg(){
+const d=uData(); if(!d||!_optProgId) return;
+d.activeProgramId=_optProgId; save();
+closeModal(‘m-progopts’); renderPrograms(); showToast(‘Program activated!’);
+}
+
+function deleteProg(id){
+// Use a sheet confirm instead of browser confirm
+const d=uData(); if(!d||!id) return;
+const prog=(d.programs||[]).find(function(p){return p.id===id;});
+const name=(prog && prog.name)||‘this program’;
+document.getElementById(‘mProgOptItems’).innerHTML=` <div style="background:rgba(184,88,88,.08);border:1px solid rgba(184,88,88,.2);border-radius:var(--rs);padding:14px;margin-bottom:12px;font-size:13px;color:var(--text2)"> Are you sure you want to delete <strong>${name}</strong>? All program data will be removed. Your workout logs will not be deleted. </div> <button class="btn btn-red btn-full" onclick="confirmDeleteProg('${id}')" style="margin-bottom:8px">Yes, Delete "${name}"</button> <button class="btn btn-ghost btn-full" onclick="openProgOpts('${id}')">Cancel</button>`;
+}
+
+function confirmDeleteProg(id){
+const d=uData(); if(!d) return;
+d.programs=d.programs.filter(p=>p.id!==id);
+if(d.activeProgramId===id)d.activeProgramId=d.programs[0]?.id||null;
+save(); closeModal(‘m-progopts’); renderPrograms(); showToast(‘Program deleted’);
+}
+
+// ── EDIT PROGRAM ──
+let _editProgId=null, _editProgDayIdx=null, _editProgDays=[], _editExList=[];
+
+function editProgram(id){
+_editProgId=id;
+const d=uData();
+const prog=(d.programs||[]).find(function(p){return p.id===id;}); if(!prog) return;
+closeModal(‘m-progopts’);
+// Reuse form builder but pre-fill
+document.getElementById(‘pName’).value=prog.name;
+document.getElementById(‘pDesc’).value=prog.desc||’’;
+_editProgDays=JSON.parse(JSON.stringify(prog.days||[]));
+renderDayBuilder();
+document.getElementById(‘dayBuilderHint’).style.display=_editProgDays.length?‘none’:‘block’;
+showScreen(‘s-addprog’);
+switchAddTab(‘form’);
+// Change save button text
+document.querySelector(’#addTab-form .btn-accent’).textContent=‘💾 Save Changes’;
+}
+
+function saveFormProgram(){
+const name=document.getElementById(‘pName’).value.trim();
+if(!name){showToast(‘Enter a program name’);return;}
+if(!_editProgDays.length){showToast(‘Add at least 1 day’);return;}
+const d=uData(); if(!d) return;
+
+if(_editProgId){
+// Edit existing
+const prog=d.programs.find(p=>p.id===_editProgId);
+if(prog){prog.name=name;prog.desc=document.getElementById(‘pDesc’).value;prog.days=_editProgDays;}
+*editProgId=null;
+showToast(‘Program updated!’);
+} else {
+// New program
+const prog={id:’p*’+Date.now(),name,desc:document.getElementById(‘pDesc’).value,days:_editProgDays.map(day=>({…day}))};
+if(!d.programs)d.programs=[];
+d.programs.push(prog);
+if(!d.activeProgramId)d.activeProgramId=prog.id;
+showToast(‘Program saved!’);
+}
+save();
+document.querySelector(’#addTab-form .btn-accent’).textContent=‘💾 Save Program’;
+_editProgDays=[];
+renderDayBuilder();
+showScreen(‘s-programs’);
+}
+
+// ═══════════════════════════════════════════════
+// ADD PROGRAM
+// ═══════════════════════════════════════════════
+let _csvDays=null;
+
+function renderAddProg(){
+if(!_editProgId){
+document.getElementById(‘pName’).value=’’;
+document.getElementById(‘pDesc’).value=’’;
+_editProgDays=[];
+document.querySelector(’#addTab-form .btn-accent’).textContent=‘💾 Save Program’;
+}
+renderDayBuilder();
+switchAddTab(‘form’);
+renderTemplates();
+}
+
+function switchAddTab(tab){
+[‘form’,‘csv’,‘tpl’].forEach(t=>{
+const el=document.getElementById(‘addTab-’+t); if(!el) return;
+el.style.display=t===tab?‘flex’:‘none’;
+if(t===tab)el.style.flexDirection=‘column’;
+});
+document.querySelectorAll(’.add-tab’).forEach((el,i)=>{
+el.classList.toggle(‘on’,[‘form’,‘csv’,‘tpl’][i]===tab);
+});
+}
+
+function addDayBuilder(){
+_editProgDays.push({title:`Day ${_editProgDays.length+1}`,type:‘strength’,focus:’’,exercises:[]});
+renderDayBuilder();
+}
+function removeDayBuilder(i){_editProgDays.splice(i,1);renderDayBuilder();}
+function renderDayBuilder(){
+const el=document.getElementById(‘dayBuilder’);
+const hint=document.getElementById(‘dayBuilderHint’);
+if(hint)hint.style.display=_editProgDays.length?‘none’:‘block’;
+el.innerHTML=_editProgDays.map((day,i)=>` <div class="day-build-row"> <div class="dbr-num">${i+1}</div> <div class="dbr-info"> <div class="dbr-title">${day.title||`Day ${i+1}`}</div> <div class="dbr-sub">${TYPE_META[day.type]?.label||'Strength'} · ${(day.exercises && day.exercises.length)||0} exercises${(day.cardio && day.cardio.type)?' · '+day.cardio.label:''}</div> </div> <div style="display:flex;gap:5px"> <div class="icon-btn" onclick="openDayEditor(${i})">✏️</div> <div class="icon-btn" onclick="removeDayBuilder(${i})" style="color:var(--red)">🗑</div> </div> </div>`).join(’’);
+}
+
+// Day Editor
+let _editDayIdx=null;
+function openDayEditor(i){
+_editDayIdx=i;
+const day=_editProgDays[i]||{title:’’,type:‘strength’,focus:’’,exercises:[]};
+document.getElementById(‘mDayEditTitle’).textContent=`Edit Day ${i+1}`;
+document.getElementById(‘deTitle’).value=day.title||’’;
+document.getElementById(‘deType’).value=day.type||‘strength’;
+document.getElementById(‘deFocus’).value=day.focus||’’;
+_editExList=JSON.parse(JSON.stringify(day.exercises||[]));
+// Cardio
+const c=day.cardio||{};
+document.getElementById(‘deCardioProto’).value=c.protocol||’’;
+document.getElementById(‘deCardioDetail’).value=c.detail||’’;
+document.getElementById(‘deCardioType’).value=c.type||’’;
+handleDayTypeChange();
+renderEditorExList();
+document.getElementById(‘deExForm’).style.display=‘none’;
+openModal(‘m-dayedit’);
+}
+
+function handleDayTypeChange(){
+const type=document.getElementById(‘deType’).value;
+document.getElementById(‘deCardioSection’).style.display=(type===‘strength’)?‘block’:‘none’;
+document.getElementById(‘deExSection’).style.display=(type===‘rest’)?‘none’:‘block’;
+}
+// deType listener added in init
+
+function renderEditorExList(){
+const el=document.getElementById(‘deExList’);
+el.innerHTML=_editExList.map((ex,i)=>` <div class="ex-build-row"> <div class="exb-name">${ex.name}</div> <div class="exb-meta">${ex.sets||3}×${ex.reps||'?'} ${ex.pair?'['+ex.pair+']':''}</div> <div class="icon-btn" onclick="removeEditorEx(${i})">✕</div> </div>`).join(’’);
+}
+function removeEditorEx(i){_editExList.splice(i,1);renderEditorExList();}
+
+function addExToEditor(){
+document.getElementById(‘deExForm’).style.display=‘flex’;
+document.getElementById(‘deExName’).focus();
+}
+function confirmAddEx(){
+const name=document.getElementById(‘deExName’).value.trim();
+if(!name){showToast(‘Enter exercise name’);return;}
+const pairRaw=document.getElementById(‘deExPair’).value.trim().toUpperCase()||’’;
+const ex={
+id:‘ex_’+Date.now(),
+name,
+sets:parseInt(document.getElementById(‘deExSets’).value)||3,
+reps:document.getElementById(‘deExReps’).value||‘10’,
+pair:pairRaw,
+notes:document.getElementById(‘deExNotes’).value||’’,
+link:document.getElementById(‘deExLink’).value||`https://www.youtube.com/results?search_query=${encodeURIComponent(name+' exercise form tutorial')}`
+};
+_editExList.push(ex);
+renderEditorExList();
+// Clear form
+[‘deExName’,‘deExSets’,‘deExReps’,‘deExPair’,‘deExNotes’,‘deExLink’].forEach(id=>{document.getElementById(id).value=’’;});
+document.getElementById(‘deExName’).focus();
+}
+
+function saveDayEdit(){
+const type=document.getElementById(‘deType’).value;
+const ctype=document.getElementById(‘deCardioType’).value;
+const day={
+title:document.getElementById(‘deTitle’).value||`Day ${_editDayIdx+1}`,
+type,
+focus:document.getElementById(‘deFocus’).value,
+exercises:type===‘rest’?[]:[…_editExList]
+};
+if(type===‘strength’&&ctype){
+day.cardio={
+type:ctype,
+label:{liss:‘LISS Cardio’,hiit:‘HIIT Cardio’,active:‘Active Recovery’}[ctype]||‘Cardio’,
+protocol:document.getElementById(‘deCardioProto’).value,
+detail:document.getElementById(‘deCardioDetail’).value,
+hrZone:2,workSecs:30,restSecs:90,rounds:10
+};
+}
+_editProgDays[_editDayIdx]=day;
+renderDayBuilder();
+closeModal(‘m-dayedit’);
+showToast(‘Day saved!’);
+}
+
+// CSV
+let _csvParsed=null;
+function handleCSV(input){
+const file=input.files[0]; if(!file) return;
+const reader=new FileReader();
+reader.onload=e=>{
+try{
+*csvParsed=parseCSV(e.target.result);
+renderCSVPreview(*csvParsed);
+document.getElementById(‘csvSaveBtn’).style.display=‘block’;
+}catch(err){showToast(‘CSV error: ‘+err.message);}
+};
+reader.readAsText(file);
+}
+function parseCSV(text){
+const lines=text.trim().split(’\n’);
+const hdrs=lines[0].split(’,’).map(h=>h.trim().replace(/”/g,’’).toLowerCase());
+const rows=lines.slice(1).map(l=>{const vals=l.split(’,’).map(v=>v.trim().replace(/”/g,’’));const o={};hdrs.forEach((h,i)=>o[h]=vals[i]||’’);return o;}).filter(r=>r.day&&r.name);
+const dayMap={};
+rows.forEach(r=>{
+if(!dayMap[r.day])dayMap[r.day]={title:`Day ${r.day}`,type:r.type||‘strength’,focus:’’,exercises:[],wod:null};
+const day=dayMap[r.day];
+if(r.type)day.type=r.type;
+if(r.type===‘hiit’){day.workIntervals=parseInt(r.work_secs)||30;day.restIntervals=parseInt(r.rest_secs)||90;day.rounds=parseInt(r.rounds)||10;day.notes=r.notes||’’;}
+else if(r.type===‘crossfit’){if(!day.wod)day.wod={type:r.wod_type||‘fortime’,movements:[],notes:r.notes||’’};day.wod.movements.push({name:r.name,reps:r.reps||’’});}
+else if(r.type===‘cardio’){if(!day.exercises)day.exercises=[];day.exercises.push({name:r.name,notes:r.notes||’’});}
+else{day.exercises.push({id:’ex*’+Date.now()+’*’+Math.random().toString(36).slice(2),name:r.name,sets:parseInt(r.sets)||3,reps:r.reps||‘10’,notes:r.notes||’’,pair:(r.superset||’’).toUpperCase(),link:r.link||`https://www.youtube.com/results?search_query=${encodeURIComponent(r.name+' exercise form')}`});}
+});
+return Object.entries(dayMap).sort((a,b)=>parseInt(a[0])-parseInt(b[0])).map(([,v])=>v);
+}
+function renderCSVPreview(days){
+const el=document.getElementById(‘csvPreview’); el.style.display=‘block’;
+el.innerHTML=`<div class="card"><div style="padding:12px"><div style="font-weight:700;color:var(--green);margin-bottom:8px">✓ Parsed ${days.length} days</div>${days.map((d,i)=>`<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px"><span>Day ${i+1}: ${d.title}</span><span class="tag ${TYPE_META[d.type]?.cls||''}">${TYPE_META[d.type]?.label||d.type}</span></div>`).join('')}</div></div>`;
+}
+function saveCSVProgram(){
+if(!(_csvParsed && *csvParsed.length)){showToast(‘No data to import’);return;}
+const name=document.getElementById(‘csvName’).value.trim()||‘Imported Program’;
+const d=uData(); if(!d) return;
+const prog={id:’p*’+Date.now(),name,desc:‘Imported from CSV’,days:_csvParsed};
+if(!d.programs)d.programs=[];
+d.programs.push(prog);
+if(!d.activeProgramId)d.activeProgramId=prog.id;
+save(); showToast(‘Program imported!’); showScreen(‘s-programs’);
+}
+
+// Templates
+function renderTemplates(){
+const el=document.getElementById(‘tplCards’); if(!el) return;
+el.innerHTML=BUILT_IN_TEMPLATES.map(t=>` <div class="tpl-card" onclick="loadTemplate('${t.id}')"> <div class="tpl-body"><div class="tpl-name">${t.name}</div><div class="tpl-desc">${t.desc}</div><div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px">${t.types.map(tp=>`<span class="tag ${TYPE_META[tp]?.cls||''}">${TYPE_META[tp]?.icon||’’} ${TYPE_META[tp]?.label||tp}</span>`).join('')}</div></div> <div class="tpl-foot">Tap to add → ${(t.days && t.days.length)||0} days</div> </div>`).join(’’);
+}
+function loadTemplate(id){
+const tpl=BUILT_IN_TEMPLATES.find(t=>t.id===id); if(!tpl) return;
+const d=uData(); if(!d) return;
+const prog={id:‘p_’+Date.now(),name:tpl.name,desc:tpl.desc,days:JSON.parse(JSON.stringify(tpl.days))};
+if(!d.programs)d.programs=[];
+d.programs.push(prog);
+if(!d.activeProgramId)d.activeProgramId=prog.id;
+save(); showToast(`"${tpl.name}" added!`); showScreen(‘s-programs’);
+}
+
+// ═══════════════════════════════════════════════
+// PROGRESS — comprehensive
+// ═══════════════════════════════════════════════
+function renderProgress(){
+const d=uData(); const u=activeUser();
+document.getElementById(‘progUserLbl’).textContent=(u && u.name)||’’;
+const sessions=(d && d.sessions)||[];
+const logs=(d && d.logs)||{};
+
+// Stats
+const totalSets=sessions.reduce((a,s)=>a+(s.sets||0),0);
+const totalVol=sessions.reduce((a,s)=>a+(s.vol||0),0);
+const wks=(d && d.currentWeek)||1;
+
+// PR count
+const prMap={};
+Object.entries(logs).forEach(([key,val])=>{
+if(val.weight&&val.reps){
+const parts=key.split(’*’);
+if(parts.length<4)return;
+const exId=parts.slice(2,-1).join(’*’);
+const w=parseFloat(val.weight)||0;
+if(!prMap[exId]||w>prMap[exId].weight)prMap[exId]={weight:w,reps:parseInt(val.reps)||0,wk:parseInt(parts[0].replace(‘w’,’’))||1};
+}
+});
+const prCount=Object.keys(prMap).length;
+
+const avgDur=sessions.length?Math.round(sessions.filter(s=>s.duration>0).reduce((a,s)=>a+(s.duration||0),0)/Math.max(sessions.filter(s=>s.duration>0).length,1)):0;
+
+document.getElementById(‘statsGrid’).innerHTML=` <div class="stat-card"><div class="stat-val">${sessions.length}</div><div class="stat-lbl">Sessions</div></div> <div class="stat-card"><div class="stat-val">${totalSets}</div><div class="stat-lbl">Sets Logged</div></div> <div class="stat-card"><div class="stat-val">${wks}</div><div class="stat-lbl">Weeks In</div></div> <div class="stat-card"><div class="stat-val">${totalVol>0?Math.round(totalVol/1000)+'k':'—'}</div><div class="stat-lbl">lbs Lifted</div></div> <div class="stat-card"><div class="stat-val">${prCount}</div><div class="stat-lbl">PRs Tracked</div></div> <div class="stat-card"><div class="stat-val">${avgDur>0?formatTime(avgDur):'—'}</div><div class="stat-lbl">Avg Duration</div></div>`;
+
+// Build name map from programs
+const exNames={};
+((d && d.programs)||[]).forEach(prog=>{
+(prog.days||[]).forEach((day,di)=>{
+(day.exercises||[]).forEach((ex,ei)=>{
+const id=ex.id||`d${di}_${ex.pair||'s'}_${ei}`;
+exNames[id]=ex.name;
+});
+});
+});
+
+// PRs list
+const prList=document.getElementById(‘prList’);
+const prEntries=Object.entries(prMap);
+if(!prEntries.length){
+prList.innerHTML=`<div style="padding:0 14px"><div class="empty"><div class="empty-icon">📊</div><div>Log workouts to see your PRs here.</div></div></div>`;
+} else {
+prList.innerHTML=prEntries.slice(0,20).map(([id,pr])=>{
+const name=exNames[id]||id;
+return `<div class="pr-row"><div><div class="pr-name">${name}</div><div class="pr-sub">Week ${pr.wk} · best set</div></div><div><div class="pr-val">${pr.weight} lbs</div><div class="pr-change new">× ${pr.reps} reps</div></div></div>`;
+}).join(’’);
+}
+
+// Volume by exercise (total sets × reps × weight)
+const volMap={};
+Object.entries(logs).forEach(([key,val])=>{
+if(val.weight&&val.reps){
+const parts=key.split(’*’);
+if(parts.length<4)return;
+const exId=parts.slice(2,-1).join(’*’);
+const vol=(parseFloat(val.weight)||0)*(parseInt(val.reps)||0);
+volMap[exId]=(volMap[exId]||0)+vol;
+}
+});
+const volEntries=Object.entries(volMap).sort((a,b)=>b[1]-a[1]).slice(0,10);
+const maxVol=volEntries[0]?.[1]||1;
+const volList=document.getElementById(‘volList’);
+if(!volEntries.length){
+volList.innerHTML=`<div style="padding:0 14px"><div class="empty" style="padding:20px"><div>No volume data yet.</div></div></div>`;
+} else {
+volList.innerHTML=volEntries.map(([id,vol])=>` <div class="vol-bar-row"> <div class="vol-bar-top"><span>${exNames[id]||id}</span><span style="color:var(--accent);font-weight:700">${Math.round(vol).toLocaleString()} lbs</span></div> <div class="vol-bar-bg"><div class="vol-bar-fill" style="width:${Math.round(vol/maxVol*100)}%"></div></div> </div>`).join(’’);
+}
+}
+
+// ═══════════════════════════════════════════════
+// HISTORY — with in-progress, edit, delete
+// ═══════════════════════════════════════════════
+function renderHistory(){
+const d=uData(); const u=activeUser();
+document.getElementById(‘histUserLbl’).textContent=(u && u.name)||’’;
+
+// Show in-progress banner if active workout
+const ipEl=document.getElementById(‘histInProgress’);
+if((d && d.activeWorkout)){
+const aw=d.activeWorkout;
+const start=new Date(aw.startTime);
+const timeStr=start.toLocaleTimeString(‘en-US’,{hour:‘numeric’,minute:‘2-digit’});
+ipEl.innerHTML=`<div class="in-progress-banner" onclick="openWorkout(${aw.dayIdx})"> <span>🟠</span> <span><strong>${aw.dayTitle||'Workout'}</strong> started at ${timeStr} — tap to resume</span> </div>`;
+} else { ipEl.innerHTML=’’; }
+
+const sessions=(d && d.sessions)||[];
+const list=document.getElementById(‘histList’);
+if(!sessions.length){
+list.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div>No sessions yet. Complete your first workout to start your history.</div></div>`;
+return;
+}
+list.innerHTML=sessions.map((s,idx)=>{
+const date=new Date(s.date);
+const dateStr=date.toLocaleDateString(‘en-US’,{weekday:‘short’,month:‘short’,day:‘numeric’});
+const tm=TYPE_META[s.type]||TYPE_META.strength;
+const vol=s.vol?`${Math.round(s.vol).toLocaleString()} lbs`:’’;
+return `<div class="hist-card"> <div class="hist-card-top"> <div><div class="hist-title">${s.dayTitle||`Day ${(s.dayIdx||0)+1}`}</div><div class="hist-meta">${dateStr} · Week ${s.week}</div></div> <span class="tag ${tm.cls}">${tm.icon} ${tm.label}</span> </div> <div class="hist-stats-row"> <div class="hist-stat"><div class="hist-stat-val">${s.sets||'—'}</div><div class="hist-stat-lbl">Sets</div></div> <div class="hist-stat"><div class="hist-stat-val">${s.exercises||'—'}</div><div class="hist-stat-lbl">Exercises</div></div> ${s.duration?`<div class="hist-stat"><div class="hist-stat-val">${formatTime(s.duration)}</div><div class="hist-stat-lbl">Duration</div></div>`:''} ${vol?`<div class="hist-stat"><div class="hist-stat-val" style="font-size:14px">${vol}</div><div class="hist-stat-lbl">Volume</div></div>`:''} </div> ${(s.highlights && s.highlights.length)?`<div class="hist-highlights">${s.highlights.map(h=>`<div class="hist-hl-row"><div class="hist-hl-name">${h.name}</div><div class="hist-hl-val">${h.val}</div></div>`).join(’’)}</div>`:''} <div class="hist-card-foot"> <button class="hist-edit-btn" onclick="openEditHistory(${idx})">✏️ Edit</button> <button class="hist-delete-btn" onclick="deleteSession(${idx})">🗑 Delete</button> </div> </div>`;
+}).join(’’);
+}
+
+let _editHistIdx=null;
+function openEditHistory(idx){
+_editHistIdx=idx;
+const d=uData(); if(!d) return;
+const s=d.sessions[idx]; if(!s) return;
+document.getElementById(‘mEditHistSub’).textContent=`${s.dayTitle||'Session'} · ${new Date(s.date).toLocaleDateString()}`;
+
+const body=document.getElementById(‘mEditHistBody’);
+
+// Get all logged sets for this session that match the day
+const wk=s.week||1;
+const dayIdx=s.dayIdx||0;
+const prog=(d.programs||[]).find(function(p){return p.id===d.activeProgramId;});
+const day=(prog && prog.days)?.[dayIdx];
+
+if(!day||!(day.exercises && day.exercises.length)){
+body.innerHTML=`<div class="inp-wrap"><div class="inp-label">Notes</div><input class="inp" id="editHistNotes" value="${s.notes||''}" placeholder="Add session notes"></div>`;
+openModal(‘m-edithistory’); return;
+}
+
+let html=`<div class="inp-wrap"><div class="inp-label">Date</div><input class="inp" id="editHistDate" type="date" value="${new Date(s.date).toISOString().split('T')[0]}"></div>`;
+html+=`<div class="inp-wrap"><div class="inp-label">Notes</div><input class="inp" id="editHistNotes" value="${s.notes||''}" placeholder="Session notes"></div>`;
+
+(day.exercises || []).forEach(ex=>{
+const exId=ex.id||`d${dayIdx}_${ex.pair||'s'}_0`;
+html+=`<div style="margin-top:8px"><div style="font-weight:700;font-size:13px;margin-bottom:6px">${ex.name}</div>`;
+html+=`<div class="sets-hdr"><div class="set-lbl">#</div><div class="set-lbl">Weight (lbs)</div><div class="set-lbl">Reps</div></div>`;
+for(let s2=1;s2<=(ex.sets||3);s2++){
+const lk=`w${wk}_d${dayIdx}_${exId}_s${s2}`;
+const lg=d.logs?.[lk]||{};
+html+=`<div class="edit-set-row"> <div class="edit-set-n">${s2}</div> <input class="inp" style="padding:9px 7px;font-size:15px;text-align:center" type="number" inputmode="decimal" placeholder="lbs" value="${lg.weight||''}" data-logkey="${lk}" data-field="weight"> <input class="inp" style="padding:9px 7px;font-size:15px;text-align:center" type="number" inputmode="numeric" placeholder="reps" value="${lg.reps||''}" data-logkey="${lk}" data-field="reps"> </div>`;
+}
+html+=`</div>`;
+});
+
+body.innerHTML=html;
+openModal(‘m-edithistory’);
+}
+
+function saveHistoryEdit(){
+const d=uData(); if(!d||_editHistIdx===null) return;
+const s=d.sessions[_editHistIdx];
+
+// Save date
+const dateInp=document.getElementById(‘editHistDate’);
+if(dateInp&&dateInp.value) s.date=new Date(dateInp.value).toISOString();
+
+// Save notes
+const notesInp=document.getElementById(‘editHistNotes’);
+if(notesInp) s.notes=notesInp.value;
+
+// Save all set inputs
+document.querySelectorAll(’#mEditHistBody input[data-logkey]’).forEach(inp=>{
+const lk=inp.dataset.logkey;
+const field=inp.dataset.field;
+if(lk&&field){
+if(!d.logs)d.logs={};
+if(!d.logs[lk])d.logs[lk]={};
+d.logs[lk][field]=inp.value;
+}
+});
+
+save(); closeModal(‘m-edithistory’); renderHistory(); showToast(‘Session updated!’);
+}
+
+function deleteSession(idx){
+const d=uData(); if(!d) return;
+const s=d.sessions[idx];
+if(!s) return;
+// Inline confirm
+const list=document.getElementById(‘histList’);
+const cards=list.querySelectorAll(’.hist-card’);
+if(cards[idx]){
+cards[idx].insertAdjacentHTML(‘beforeend’,`<div style="padding:10px 14px;background:rgba(184,88,88,.06);border-top:1px solid rgba(184,88,88,.2)"> <div style="font-size:12px;color:var(--text2);margin-bottom:8px">Delete this session? This cannot be undone.</div> <div style="display:flex;gap:8px"> <button class="btn btn-red btn-sm" style="flex:1" onclick="confirmDeleteSession(${idx})">Yes, Delete</button> <button class="btn btn-ghost btn-sm" style="flex:1" onclick="renderHistory()">Cancel</button> </div> </div>`);
+}
+}
+function confirmDeleteSession(idx){
+const d=uData(); if(!d) return;
+d.sessions.splice(idx,1);
+save(); renderHistory(); showToast(‘Session deleted’);
+}
+
+// ═══════════════════════════════════════════════
+// REST TIMER
+// ═══════════════════════════════════════════════
+let restIv=null, restRem=0, restTotal=90;
+function startRest(secs){ restTotal=secs||90; restRem=restTotal; clearInterval(restIv); document.getElementById(‘restOverlay’).classList.add(‘open’); updateRestUI(); restIv=setInterval(()=>{restRem–;updateRestUI();if(restRem<=0){stopRest();showToast(‘Rest done — go!🔥’);}},1000); }
+function updateRestUI(){ const cd=document.getElementById(‘restCd’),fill=document.getElementById(‘restFill’),m=Math.floor(restRem/60),s=restRem%60; if(cd){cd.textContent=`${m}:${s.toString().padStart(2,'0')}`;cd.classList.toggle(‘done’,restRem<=0);} if(fill)fill.style.width=Math.max(0,restRem/restTotal*100)+’%’; }
+function addRest(s){restRem+=s;updateRestUI();}
+function stopRest(){ clearInterval(restIv); document.getElementById(‘restOverlay’).classList.remove(‘open’); }
+
+// ═══════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════
+function openModal(id){ const _om=document.getElementById(id);if(_om)_om.classList.add(‘open’);; }
+function closeModal(id){ const _cm=document.getElementById(id);if(_cm)_cm.classList.remove(‘open’);; }
+function formatTime(s){ const m=Math.floor(s/60); return `${m}:${(s%60).toString().padStart(2,'0')}`; }
+function showToast(msg){ const t=document.getElementById(‘toast’); t.textContent=msg; t.classList.add(‘show’); setTimeout(()=>t.classList.remove(‘show’),2600); }
+
+// Wire up UI events - safe for both Safari and Chrome
+function wireUI() {
+document.querySelectorAll(’.modal-bg’).forEach(function(el){
+el.addEventListener(‘click’,function(e){ if(e.target===el) el.classList.remove(‘open’); });
+});
+document.querySelectorAll(’.u-add’).forEach(function(el){
+el.onclick=openAddUserModal;
+});
+var deType=document.getElementById(‘deType’);
+if(deType) deType.addEventListener(‘change’,handleDayTypeChange);
+}
+if(document.readyState === ‘loading’) {
+document.addEventListener(‘DOMContentLoaded’, wireUI);
+} else {
+wireUI();
+}
+
+const DAD_STRENGTH_PROGRAM = {
+id:‘p_dad_strength_jarrett’,
+name:‘Dad Strength’,
+desc:‘6-day functional hypertrophy program. Back & legs priority, supersets, 45 min strength + 30 min cardio.’,
+days:[
+{
+title:‘LEGS — Quad + Glute’,
+type:‘strength’,
+focus:‘Squat Pattern | Knee Longevity’,
+exercises:[
+{id:‘d1_a1’,pair:‘A’,name:‘Smith Machine Squat’,sets:4,reps:‘6-8’,notes:‘Full depth, controlled eccentric. Feel the stretch at the bottom.’,link:‘https://www.youtube.com/results?search_query=smith+machine+squat+form+tutorial’},
+{id:‘d1_a2’,pair:‘A’,name:‘Cable Tibialis Raise’,sets:4,reps:‘20’,notes:‘Knee longevity — do not skip this. Slow and controlled.’,link:‘https://www.youtube.com/results?search_query=cable+tibialis+raise+form’},
+{id:‘d1_b1’,pair:‘B’,name:‘Smith Machine Reverse Lunge’,sets:3,reps:‘10/side’,notes:‘Single leg stability, upright torso. Full step back.’,link:‘https://www.youtube.com/results?search_query=smith+machine+reverse+lunge+form’},
+{id:‘d1_b2’,pair:‘B’,name:‘DB Goblet Squat (2s pause)’,sets:3,reps:‘12’,notes:‘Hip opener + quad. 2 second pause at bottom, stay tight.’,link:‘https://www.youtube.com/results?search_query=goblet+squat+pause+form’},
+{id:‘d1_c1’,pair:‘C’,name:‘Cable Pull-Through’,sets:3,reps:‘15’,notes:‘Hip hinge pattern — drive hips forward aggressively.’,link:‘https://www.youtube.com/results?search_query=cable+pull+through+form’},
+{id:‘d1_c2’,pair:‘C’,name:‘Pallof Press’,sets:3,reps:‘12/side’,notes:‘Anti-rotation spine protection. Stay square, resist the cable.’,link:‘https://www.youtube.com/results?search_query=pallof+press+form+technique’}
+],
+cardio:{type:‘liss’,label:‘LISS Cardio’,protocol:‘Incline Treadmill Walk’,detail:‘3.5 mph / 10% grade / 30 min’,hrZone:2,notes:‘Zone 2 — conversational pace the entire time’}
+},
+{
+title:‘BACK — Width + Thickness’,
+type:‘strength’,
+focus:‘Back Priority #1 | Carry Strength’,
+exercises:[
+{id:‘d2_a1’,pair:‘A’,name:‘Smith Machine Bent Over Row’,sets:4,reps:‘6-8’,notes:‘Heavy horizontal pull. Retract scapula hard at the top.’,link:‘https://www.youtube.com/results?search_query=smith+machine+bent+over+row+form’},
+{id:‘d2_a2’,pair:‘A’,name:‘Cable Face Pull’,sets:4,reps:‘20’,notes:‘Rotator cuff health every session — non-negotiable.’,link:‘https://www.youtube.com/results?search_query=cable+face+pull+form+technique’},
+{id:‘d2_b1’,pair:‘B’,name:‘Functional Trainer Unilateral Row’,sets:3,reps:‘10/side’,notes:‘Anti-rotation demand. Do not let hips rotate.’,link:‘https://www.youtube.com/results?search_query=cable+unilateral+row+anti+rotation’},
+{id:‘d2_b2’,pair:‘B’,name:‘Cable Straight-Arm Pulldown’,sets:3,reps:‘12-15’,notes:‘Full lat stretch at the top. Squeeze hard at the bottom.’,link:‘https://www.youtube.com/results?search_query=cable+straight+arm+pulldown+form’},
+{id:‘d2_c1’,pair:‘C’,name:‘DB Incline Y-Raise’,sets:3,reps:‘12-15’,notes:‘Lower trap and posture armor. Light weight, full ROM.’,link:‘https://www.youtube.com/results?search_query=incline+y+raise+lower+trap’},
+{id:‘d2_c2’,pair:‘C’,name:‘DB Farmer Carry’,sets:3,reps:‘40 yds’,notes:‘Go heavy. Chest up, shoulders packed. This is dad strength.’,link:‘https://www.youtube.com/results?search_query=farmer+carry+form+heavy’}
+],
+cardio:{type:‘hiit’,label:‘HIIT Cardio’,protocol:‘Bike or Rower’,detail:‘30s max effort / 90s easy × 10 rounds (20 min) + 10 min LISS’,hrZone:5,workSecs:30,restSecs:90,rounds:10,notes:‘Zone 4-5 on intervals. Settle into Zone 2 for final 10 min.’}
+},
+{
+title:‘PUSH — Chest / Shoulders / Tris’,
+type:‘strength’,
+focus:‘Upper Body Press | Shoulder Health’,
+exercises:[
+{id:‘d3_a1’,pair:‘A’,name:‘Smith Machine Incline Press’,sets:4,reps:‘6-8’,notes:‘Primary chest compound. Full ROM, 2s lower, explode up.’,link:‘https://www.youtube.com/results?search_query=smith+machine+incline+bench+press+form’},
+{id:‘d3_a2’,pair:‘A’,name:‘Cable Lateral Raise’,sets:4,reps:‘12-15’,notes:‘Constant tension, no momentum. Lead with the elbow.’,link:‘https://www.youtube.com/results?search_query=cable+lateral+raise+form’},
+{id:‘d3_b1’,pair:‘B’,name:‘DB Arnold Press’,sets:3,reps:‘10-12’,notes:‘Rotational stability. Rotate fully at bottom and top.’,link:‘https://www.youtube.com/results?search_query=arnold+press+form+dumbbell’},
+{id:‘d3_b2’,pair:‘B’,name:‘Cable Chest Fly (low-to-high)’,sets:3,reps:‘12-15’,notes:‘Full pec stretch at the bottom. Squeeze hard at the top.’,link:‘https://www.youtube.com/results?search_query=cable+chest+fly+low+to+high’},
+{id:‘d3_c1’,pair:‘C’,name:‘Cable Tricep Pushdown (rope)’,sets:3,reps:‘12-15’,notes:‘Flare rope at the bottom for full tricep contraction.’,link:‘https://www.youtube.com/results?search_query=rope+tricep+pushdown+form’},
+{id:‘d3_c2’,pair:‘C’,name:‘Functional Trainer Push-Out’,sets:3,reps:‘12’,notes:‘Core + press integrated. Stay square, do not rotate.’,link:‘https://www.youtube.com/results?search_query=cable+chest+press+standing+functional’}
+],
+cardio:{type:‘liss’,label:‘LISS Cardio’,protocol:‘Bike or Elliptical’,detail:‘Conversational pace / 30 min’,hrZone:2,notes:‘Zone 2 steady state. Active recovery from Day 2 HIIT.’}
+},
+{
+title:‘LEGS — Posterior Chain’,
+type:‘strength’,
+focus:‘Hinge Pattern | Glute Power’,
+exercises:[
+{id:‘d4_a1’,pair:‘A’,name:‘DB Romanian Deadlift’,sets:4,reps:‘8-10’,notes:‘King of hamstring health. Slow eccentric, feel the stretch.’,link:‘https://www.youtube.com/results?search_query=dumbbell+romanian+deadlift+form’},
+{id:‘d4_a2’,pair:‘A’,name:‘DB Hip Thrust (off bench)’,sets:4,reps:‘12-15’,notes:‘Glute max strength. Full hip extension, pause at top.’,link:‘https://www.youtube.com/results?search_query=dumbbell+hip+thrust+bench+form’},
+{id:‘d4_b1’,pair:‘B’,name:‘Smith Machine Bulgarian Split Squat’,sets:3,reps:‘8-10/side’,notes:‘Single leg posterior chain. Drive knee forward, full depth.’,link:‘https://www.youtube.com/results?search_query=bulgarian+split+squat+smith+machine’},
+{id:‘d4_b2’,pair:‘B’,name:‘Cable Woodchop (high-to-low)’,sets:3,reps:‘12/side’,notes:‘Rotational core power. Controlled movement, full rotation.’,link:‘https://www.youtube.com/results?search_query=cable+woodchop+high+to+low+form’},
+{id:‘d4_c1’,pair:‘C’,name:‘DB Stiff Leg Deadlift’,sets:3,reps:‘10-12’,notes:‘Hamstring lengthening. Feel the stretch, do not rush.’,link:‘https://www.youtube.com/results?search_query=stiff+leg+deadlift+dumbbell+form’},
+{id:‘d4_c2’,pair:‘C’,name:‘Seated DB Calf Raise’,sets:3,reps:‘20’,notes:‘Ankle stability. Full ROM — all the way up and down.’,link:‘https://www.youtube.com/results?search_query=seated+dumbbell+calf+raise’}
+],
+cardio:{type:‘hiit’,label:‘HIIT Cardio’,protocol:‘Bike or Rower’,detail:‘40s max effort / 80s easy × 10 rounds (20 min) + 10 min LISS’,hrZone:5,workSecs:40,restSecs:80,rounds:10,notes:‘Harder interval structure than Day 2. Go all out on the work sets.’}
+},
+{
+title:‘BACK — Functional Focus’,
+type:‘strength’,
+focus:‘Back Priority #2 | Explosive Pull’,
+exercises:[
+{id:‘d5_a1’,pair:‘A’,name:‘Smith Machine Pendlay Row’,sets:4,reps:‘6-8’,notes:‘Explosive pull power. Dead stop on floor each rep.’,link:‘https://www.youtube.com/results?search_query=pendlay+row+form+technique’},
+{id:‘d5_a2’,pair:‘A’,name:‘Cable Pullover’,sets:3,reps:‘12-15’,notes:‘Lat stretch and activation primer. Full range.’,link:‘https://www.youtube.com/results?search_query=cable+pullover+lat+form’},
+{id:‘d5_b1’,pair:‘B’,name:‘Cable Wide Grip Seated Row’,sets:3,reps:‘10-12’,notes:‘Mid-back thickness. Elbows wide and high, retract hard.’,link:‘https://www.youtube.com/results?search_query=wide+grip+seated+cable+row’},
+{id:‘d5_b2’,pair:‘B’,name:‘Functional Trainer Low Row’,sets:3,reps:‘12’,notes:‘Scapular retraction focus. Feel the mid-back squeeze.’,link:‘https://www.youtube.com/results?search_query=low+cable+row+scapular+retraction’},
+{id:‘d5_c1’,pair:‘C’,name:‘DB Suitcase Carry’,sets:3,reps:‘40 yds/side’,notes:‘Lateral core + grip. One side at a time. Stay tall.’,link:‘https://www.youtube.com/results?search_query=suitcase+carry+lateral+core’},
+{id:‘d5_c2’,pair:‘C’,name:‘Cable Face Pull (external rotation)’,sets:3,reps:‘20’,notes:‘Shoulder armor every week. Elbows high, pull to ears.’,link:‘https://www.youtube.com/results?search_query=face+pull+external+rotation+shoulder+health’}
+],
+cardio:{type:‘liss’,label:‘LISS Cardio’,protocol:‘Incline Walk or Rower’,detail:‘Steady state / 30 min’,hrZone:2,notes:‘Zone 2. Keep it easy — two HIIT sessions already in the bank this week.’}
+},
+{
+title:‘FULL BODY — The Dad Day’,
+type:‘strength’,
+focus:‘Mobility + Longevity + Carry Strength’,
+exercises:[
+{id:‘d6_a1’,pair:‘A’,name:‘DB Turkish Get-Up’,sets:3,reps:‘3/side’,notes:‘Full body control and mobility. Go slow — there is no rushing this.’,link:‘https://www.youtube.com/results?search_query=turkish+get+up+full+tutorial’},
+{id:‘d6_a2’,pair:‘A’,name:‘Functional Trainer Pallof Press’,sets:3,reps:‘12/side’,notes:‘Spine stability. Resist rotation with your whole core.’,link:‘https://www.youtube.com/results?search_query=cable+pallof+press+anti+rotation’},
+{id:‘d6_b1’,pair:‘B’,name:‘DB Overhead Carry’,sets:3,reps:‘30 yds/side’,notes:‘Shoulder stability and core demand. Lock arm fully, do not let it drift.’,link:‘https://www.youtube.com/results?search_query=overhead+carry+dumbbell+stability’},
+{id:‘d6_b2’,pair:‘B’,name:‘Cable Pull-Through’,sets:3,reps:‘15’,notes:‘Hip hinge reinforcement. Drive hips forward, squeeze glutes.’,link:‘https://www.youtube.com/results?search_query=cable+pull+through+hip+hinge’},
+{id:‘d6_c1’,pair:‘C’,name:‘DB Lateral Lunge’,sets:3,reps:‘10/side’,notes:‘Most neglected pattern. Push knee out over toes, sit into the hip.’,link:‘https://www.youtube.com/results?search_query=dumbbell+lateral+lunge+form’},
+{id:‘d6_c2’,pair:‘C’,name:‘DB Farmer Carry (heavy)’,sets:3,reps:‘50 yds’,notes:‘Full body finisher. Go as heavy as possible. This is your test.’,link:‘https://www.youtube.com/results?search_query=heavy+farmer+carry+grip+strength’}
+],
+cardio:{type:‘liss’,label:‘Active Recovery’,protocol:‘Easy Walk or Mobility Flow’,detail:‘30 min — movement quality focus’,hrZone:1,notes:‘Zone 1-2 only. This is recovery — keep it easy, stretch, move well.’}
+}
+]
+};
+
+const SCULPT_PROGRAM = {
+id:‘p_sculpt_lindsay’,
+name:‘Sculpt — PPL + Full Body’,
+desc:‘4-day PPL + Full Body split. Even muscle distribution, straight sets, 60 min max. Advanced.’,
+days:[
+{
+title:‘PUSH — Chest / Shoulders / Tris’,
+type:‘strength’,
+focus:‘Pressing Strength | Delt Development’,
+exercises:[
+{id:‘l1_1’,pair:‘A’,name:‘Smith Machine Incline Press’,sets:4,reps:‘8-10’,notes:‘Primary chest compound. 2s eccentric, explode up. Elbows at 45°.’,link:‘https://www.youtube.com/results?search_query=smith+machine+incline+press+form’},
+{id:‘l1_2’,pair:‘B’,name:‘Smith Machine Flat Press’,sets:3,reps:‘10-12’,notes:‘Mid chest emphasis. Full ROM, do not lock out at top.’,link:‘https://www.youtube.com/results?search_query=smith+machine+flat+bench+press+form’},
+{id:‘l1_3’,pair:‘C’,name:‘DB Arnold Press’,sets:3,reps:‘10-12’,notes:‘All three delt heads. Rotate fully — slow and controlled.’,link:‘https://www.youtube.com/results?search_query=arnold+press+dumbbell+form’},
+{id:‘l1_4’,pair:‘D’,name:‘Cable Chest Fly (low-to-high)’,sets:3,reps:‘12-15’,notes:‘Full pec stretch at bottom. Squeeze hard at top.’,link:‘https://www.youtube.com/results?search_query=cable+chest+fly+low+to+high’},
+{id:‘l1_5’,pair:‘E’,name:‘Cable Lateral Raise’,sets:3,reps:‘12-15’,notes:‘Constant tension. Lead with elbow, no momentum.’,link:‘https://www.youtube.com/results?search_query=cable+lateral+raise+form’},
+{id:‘l1_6’,pair:‘F’,name:‘Cable Tricep Pushdown (rope)’,sets:3,reps:‘12-15’,notes:‘Flare rope at bottom for full tricep contraction.’,link:‘https://www.youtube.com/results?search_query=rope+tricep+pushdown+form’},
+{id:‘l1_7’,pair:‘G’,name:‘DB Overhead Tricep Extension’,sets:3,reps:‘12-15’,notes:‘Long head emphasis. Full stretch at bottom, controlled.’,link:‘https://www.youtube.com/results?search_query=dumbbell+overhead+tricep+extension+form’}
+]
+},
+{
+title:‘PULL — Back / Rear Delts / Biceps’,
+type:‘strength’,
+focus:‘Lat Width | Mid-Back Thickness | Arm Strength’,
+exercises:[
+{id:‘l2_1’,pair:‘A’,name:‘Smith Machine Bent Over Row’,sets:4,reps:‘8-10’,notes:‘Heavy horizontal pull. Retract scapula hard at the top.’,link:‘https://www.youtube.com/results?search_query=smith+machine+bent+over+row+form’},
+{id:‘l2_2’,pair:‘B’,name:‘Cable Straight-Arm Pulldown’,sets:3,reps:‘12-15’,notes:‘Lat isolation. Full stretch at top, squeeze at bottom.’,link:‘https://www.youtube.com/results?search_query=cable+straight+arm+pulldown+form’},
+{id:‘l2_3’,pair:‘C’,name:‘Functional Trainer Unilateral Row’,sets:3,reps:‘10-12/side’,notes:‘Anti-rotation demand. Full ROM, do not let hips rotate.’,link:‘https://www.youtube.com/results?search_query=cable+unilateral+row+form’},
+{id:‘l2_4’,pair:‘D’,name:‘Cable Face Pull’,sets:3,reps:‘15-20’,notes:‘Rear delt and rotator cuff. Non-negotiable every Pull day.’,link:‘https://www.youtube.com/results?search_query=cable+face+pull+rear+delt+form’},
+{id:‘l2_5’,pair:‘E’,name:‘DB Incline Y-Raise’,sets:3,reps:‘12-15’,notes:‘Lower trap and posture armor. Light weight, full ROM.’,link:‘https://www.youtube.com/results?search_query=incline+y+raise+lower+trap’},
+{id:‘l2_6’,pair:‘F’,name:‘Cable Hammer Curl’,sets:3,reps:‘12-15’,notes:‘Brachialis emphasis. Slow eccentric, full extension.’,link:‘https://www.youtube.com/results?search_query=cable+hammer+curl+form’},
+{id:‘l2_7’,pair:‘G’,name:‘Incline DB Curl’,sets:3,reps:‘12-15’,notes:‘Full bicep stretch at bottom. Do not swing.’,link:‘https://www.youtube.com/results?search_query=incline+dumbbell+curl+form’}
+]
+},
+{
+title:‘LEGS — Glutes / Hamstrings / Quads’,
+type:‘strength’,
+focus:‘Posterior Chain Priority | Single Leg Stability’,
+exercises:[
+{id:‘l3_1’,pair:‘A’,name:‘Smith Machine Hip Thrust’,sets:4,reps:‘8-10’,notes:‘Primary glute builder. Drive hips fully, 1s pause at top. Go heavy.’,link:‘https://www.youtube.com/results?search_query=smith+machine+hip+thrust+form’},
+{id:‘l3_2’,pair:‘B’,name:‘Smith Machine Bulgarian Split Squat’,sets:3,reps:‘8-10/side’,notes:‘Single leg glute and quad. Upright torso, full depth.’,link:‘https://www.youtube.com/results?search_query=bulgarian+split+squat+smith+machine+form’},
+{id:‘l3_3’,pair:‘C’,name:‘DB Romanian Deadlift’,sets:3,reps:‘10-12’,notes:‘3s eccentric. Feel the hamstring stretch — do not round back.’,link:‘https://www.youtube.com/results?search_query=dumbbell+romanian+deadlift+form’},
+{id:‘l3_4’,pair:‘D’,name:‘Smith Machine Sumo Squat’,sets:3,reps:‘10-12’,notes:‘Wide stance, toes out. Inner quad and glute emphasis.’,link:‘https://www.youtube.com/results?search_query=smith+machine+sumo+squat+form’},
+{id:‘l3_5’,pair:‘E’,name:‘Cable Kickback (single leg)’,sets:3,reps:‘12-15’,notes:‘Glute isolation. Squeeze hard at top, controlled return.’,link:‘https://www.youtube.com/results?search_query=cable+glute+kickback+form’},
+{id:‘l3_6’,pair:‘F’,name:‘DB Lateral Lunge’,sets:3,reps:‘10/side’,notes:‘Inner thigh and glute med. Push knee out, sit into the hip.’,link:‘https://www.youtube.com/results?search_query=dumbbell+lateral+lunge+form’},
+{id:‘l3_7’,pair:‘G’,name:‘Seated DB Calf Raise’,sets:3,reps:‘15-20’,notes:‘Full ROM — all the way up and down. Slow eccentric.’,link:‘https://www.youtube.com/results?search_query=seated+dumbbell+calf+raise+form’}
+]
+},
+{
+title:‘FULL BODY — Compounds + Core’,
+type:‘strength’,
+focus:‘Total Body Frequency | Core Strength’,
+exercises:[
+{id:‘l4_1’,pair:‘A’,name:‘Smith Machine Incline Press’,sets:3,reps:‘10-12’,notes:‘Lighter than Push day. Focus on feel and mind-muscle connection.’,link:‘https://www.youtube.com/results?search_query=smith+machine+incline+press+form’},
+{id:‘l4_2’,pair:‘B’,name:‘Cable Seated Row (neutral grip)’,sets:3,reps:‘10-12’,notes:‘Full retraction. Chest tall, no swinging.’,link:‘https://www.youtube.com/results?search_query=cable+seated+row+neutral+grip+form’},
+{id:‘l4_3’,pair:‘C’,name:‘DB Hip Thrust (off bench)’,sets:3,reps:‘12-15’,notes:‘Glute isolation. Full extension, squeeze and hold 1s at top.’,link:‘https://www.youtube.com/results?search_query=dumbbell+hip+thrust+form’},
+{id:‘l4_4’,pair:‘D’,name:‘DB Stiff Leg Deadlift’,sets:3,reps:‘10-12’,notes:‘Hamstring lengthening. 3s down, feel the full stretch.’,link:‘https://www.youtube.com/results?search_query=stiff+leg+deadlift+dumbbell+form’},
+{id:‘l4_5’,pair:‘E’,name:‘Cable Lateral Raise’,sets:2,reps:‘15’,notes:‘Shoulder maintenance. Light and controlled.’,link:‘https://www.youtube.com/results?search_query=cable+lateral+raise+form’},
+{id:‘l4_6’,pair:‘F’,name:‘Cable Woodchop (high-to-low)’,sets:3,reps:‘12/side’,notes:‘Rotational core. Controlled — feel the obliques.’,link:‘https://www.youtube.com/results?search_query=cable+woodchop+high+to+low’},
+{id:‘l4_7’,pair:‘G’,name:‘Functional Trainer Pallof Press’,sets:3,reps:‘12/side’,notes:‘Anti-rotation stability. Stay square, resist the cable.’,link:‘https://www.youtube.com/results?search_query=pallof+press+anti+rotation+form’},
+{id:‘l4_8’,pair:‘H’,name:‘Dead Bug’,sets:3,reps:‘10/side’,notes:‘Anti-extension core. Lower back stays flat on floor.’,link:‘https://www.youtube.com/results?search_query=dead+bug+exercise+core+form’}
+]
+}
+]
+};
+
+const BUILT_IN_TEMPLATES = [
+{
+id:‘tpl_dad_strength’,
+name:‘Functional Dad Strength’,
+desc:‘6-day functional hypertrophy. Back & legs priority, supersets, 45 min strength + cardio.’,
+types:[‘strength’],
+days: DAD_STRENGTH_PROGRAM.days
+},
+{
+id:‘tpl_sculpt’,
+name:‘Sculpt — PPL + Full Body’,
+desc:“4-day PPL + Full Body split. Even muscle distribution, straight sets, 60 min max.”,
+types:[‘strength’],
+days: SCULPT_PROGRAM.days
+},
+{
+id:‘tpl_hiit’,
+name:‘HIIT & Cardio Conditioning’,
+desc:‘4-day HIIT + steady-state cardio conditioning program.’,
+types:[‘hiit’,‘cardio’],
+days:[
+{title:‘HIIT — Bike Intervals’,type:‘hiit’,focus:‘High Intensity | Fat Burn’,workIntervals:30,restIntervals:90,rounds:10,notes:‘30s max effort / 90s easy × 10 rounds’},
+{title:‘LISS — Incline Walk’,type:‘cardio’,focus:‘Zone 2 Aerobic Base’,exercises:[{name:‘Incline Treadmill Walk’,notes:‘30 min / Zone 2 / 3.5 mph / 10% grade’}]},
+{title:‘HIIT — Row Sprints’,type:‘hiit’,focus:‘Power Endurance’,workIntervals:40,restIntervals:80,rounds:8,notes:‘40s max effort / 80s rest × 8 rounds’},
+{title:‘LISS — Bike’,type:‘cardio’,focus:‘Active Recovery Cardio’,exercises:[{name:‘Bike or Elliptical’,notes:‘30 min / Zone 2 / easy steady state’}]}
+]
+}
+];
+
+load();
+
+// Always inject/update both programs
+function injectPrograms() {
+// Jarrett
+let jarrett = S.users.find(u=>u.id===‘u_jarrett’);
+if(!jarrett) {
+jarrett = {id:‘u_jarrett’,name:‘Jarrett’,color:’#b87050’,data:{programs:[],activeProgramId:null,currentWeek:1,logs:{},completed:{},sessions:[]}};
+S.users.push(jarrett);
+}
+if(!jarrett.data) jarrett.data={programs:[],activeProgramId:null,currentWeek:1,logs:{},completed:{},sessions:[]};
+jarrett.data.programs = jarrett.data.programs.filter(p=>p.id!==‘p_dad_strength_jarrett’);
+jarrett.data.programs.unshift(JSON.parse(JSON.stringify(DAD_STRENGTH_PROGRAM)));
+if(!jarrett.data.activeProgramId) jarrett.data.activeProgramId=‘p_dad_strength_jarrett’;
+
+// Lindsay
+let lindsay = S.users.find(u=>u.id===‘u_lindsay’);
+if(!lindsay) {
+lindsay = {id:‘u_lindsay’,name:‘Lindsay’,color:’#5882b8’,data:{programs:[],activeProgramId:null,currentWeek:1,logs:{},completed:{},sessions:[]}};
+S.users.push(lindsay);
+}
+if(!lindsay.data) lindsay.data={programs:[],activeProgramId:null,currentWeek:1,logs:{},completed:{},sessions:[]};
+lindsay.data.programs = lindsay.data.programs.filter(p=>p.id!==‘p_sculpt_lindsay’);
+lindsay.data.programs.unshift(JSON.parse(JSON.stringify(SCULPT_PROGRAM)));
+if(!lindsay.data.activeProgramId) lindsay.data.activeProgramId=‘p_sculpt_lindsay’;
+
+save();
+};
+
+// Init - wrapped in DOMContentLoaded for Safari safety
+function initApp() {
+try {
+// Clear old cache versions
+[‘forge_v1’,‘forge_v2’,‘dadStrengthApp’].forEach(function(k){
+try{localStorage.removeItem(k);}catch(e){}
+});
+injectPrograms();
+renderUsers();
+} catch(e) {
+console.error(‘FORGE init error:’, e);
+// Fallback - just render users grid even if programs fail
+try { renderUsers(); } catch(e2) {}
+}
+}
+
+if(document.readyState === ‘loading’) {
+document.addEventListener(‘DOMContentLoaded’, initApp);
+} else {
+initApp();
+}
+</script>
+
+</body>
+</html>
